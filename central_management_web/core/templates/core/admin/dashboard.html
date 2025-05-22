@@ -1,0 +1,39 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Tổng quan - Trung tâm Toán học{% endblock %}
+
+{% block header %}Tổng quan{% endblock %}
+
+{% block content %}
+<div class="dashboard-stats">
+    <div class="stat-card">
+        <h3>Tổng số học viên</h3>
+        <div class="number">{{ total_students }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Tổng số giáo viên</h3>
+        <div class="number">{{ total_teachers }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Tổng số lớp học</h3>
+        <div class="number">{{ total_classes }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Tổng số lượt đăng ký</h3>
+        <div class="number">{{ total_enrollments }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Điểm giáo viên trung bình</h3>
+        <div class="number">{{ avg_teacher_rating|floatformat:1 }}/5</div>
+    </div>
+    <div class="stat-card">
+        <h3>Điểm lớp học trung bình</h3>
+        <div class="number">{{ avg_class_rating|floatformat:1 }}/5</div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Thông báo gần đây</h2>
+    <p>Các hoạt động gần đây sẽ hiển thị ở đây.</p>
+</div>
+{% endblock %}

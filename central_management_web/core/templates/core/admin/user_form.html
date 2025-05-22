@@ -1,0 +1,49 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{{ action }} người dùng - Trung tâm Toán học{% endblock %}
+
+{% block header %}{{ action }} người dùng{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>{{ action }} thông tin người dùng</h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="username">Tên người dùng:</label>
+            <input type="text" id="username" name="username" value="{{ user.username|default:'' }}" {% if user %}readonly{% endif %} required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" value="{{ user.email|default:'' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Mật khẩu{% if user %} (để trống nếu không thay đổi){% endif %}:</label>
+            <input type="password" id="password" name="password" {% if not user %}required{% endif %}>
+        </div>
+
+        <div class="form-group">
+            <div class="checkbox-group">
+                <input type="checkbox" id="is_staff" name="is_staff" {% if user.is_staff %}checked{% endif %}>
+                <label for="is_staff">Là nhân viên (có quyền truy cập khu vực admin)</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="checkbox-group">
+                <input type="checkbox" id="is_superuser" name="is_superuser" {% if user.is_superuser %}checked{% endif %}>
+                <label for="is_superuser">Là quản trị viên (có tất cả quyền)</label>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <button type="submit" class="btn">Lưu</button>
+            <a href="{% url 'core:user_list' %}" class="btn" style="background-color: #95a5a6;">Hủy</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
