@@ -1,0 +1,30 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Xóa người dùng{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-trash"></i> Xóa người dùng
+            </h5>
+        </div>
+        <div class="card-body">
+            <p class="mb-4">Bạn có chắc chắn muốn xóa người dùng "{{ user.username }}" không?</p>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex justify-content-end">
+                    <a href="{% url 'core:user_list' %}" class="btn btn-secondary me-2">
+                        <i class="fas fa-times"></i> Hủy
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Xóa
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

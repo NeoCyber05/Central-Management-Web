@@ -20,6 +20,5 @@ from django.shortcuts import redirect
 
 urlpatterns = [
     path('django-admin/', admin.site.urls),
-    path('', lambda request: redirect('core:admin_dashboard')),
     path('', include('core.urls')),
 ]

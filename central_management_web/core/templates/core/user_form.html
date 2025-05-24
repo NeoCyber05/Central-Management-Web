@@ -1,0 +1,111 @@
+{% extends 'core/base.html' %}
+
+{% block title %}{% if user %}Sửa người dùng{% else %}Thêm người dùng{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                <i class="fas fa-user"></i> {% if user %}Sửa người dùng{% else %}Thêm người dùng{% endif %}
+            </h5>
+        </div>
+        <div class="card-body">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="username" class="form-label">Tên đăng nhập</label>
+                        <input type="text" class="form-control" id="username" name="username" value="{{ user.username|default:'' }}" {% if user %}readonly{% endif %} required>
+                        <div class="invalid-feedback">
+                            Vui lòng nhập tên đăng nhập
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ user.email|default:'' }}" required>
+                        <div class="invalid-feedback">
+                            Vui lòng nhập email hợp lệ
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="password" class="form-label">Mật khẩu</label>
+                        <input type="password" class="form-control" id="password" name="password" {% if not user %}required{% endif %}>
+                        <div class="invalid-feedback">
+                            Vui lòng nhập mật khẩu
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="confirm_password" class="form-label">Xác nhận mật khẩu</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" {% if not user %}required{% endif %}>
+                        <div class="invalid-feedback">
+                            Vui lòng xác nhận mật khẩu
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="is_staff" name="is_staff" {% if user.is_staff %}checked{% endif %}>
+                            <label class="form-check-label" for="is_staff">Staff</label>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="is_superuser" name="is_superuser" {% if user.is_superuser %}checked{% endif %}>
+                            <label class="form-check-label" for="is_superuser">Superuser</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="is_active" name="is_active" {% if not user or user.is_active %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">Hoạt động</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end">
+                    <a href="{% url 'core:user_list' %}" class="btn btn-secondary me-2">
+                        <i class="fas fa-times"></i> Hủy
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Lưu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var form = document.querySelector('form');
+    var password = document.getElementById('password');
+    var confirmPassword = document.getElementById('confirm_password');
+    
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        } else if (password.value !== confirmPassword.value) {
+            event.preventDefault();
+            alert('Mật khẩu xác nhận không khớp');
+        }
+        form.classList.add('was-validated');
+    });
+});
+</script>
+{% endblock %} 

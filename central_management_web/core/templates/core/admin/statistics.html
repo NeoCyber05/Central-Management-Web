@@ -1,0 +1,180 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Thống kê{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Thống kê</h1>
+    
+    <!-- Basic Statistics Cards -->
+    <div class="row mt-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">Tổng số học viên</h4>
+                    <h2 class="display-4">{{ total_students }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">Tổng số giáo viên</h4>
+                    <h2 class="display-4">{{ total_teachers }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">Tổng số lớp học</h4>
+                    <h2 class="display-4">{{ total_classes }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-info text-white mb-4">
+                <div class="card-body">
+                    <h4 class="card-title">Tổng số đăng ký</h4>
+                    <h2 class="display-4">{{ total_enrollments }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Class Statistics -->
+    <div class="row mt-4">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie me-1"></i>
+                    Thống kê lớp học
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card bg-success text-white mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">Lớp đang hoạt động</h5>
+                                    <h3 class="display-4">{{ active_classes }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-info text-white mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">Lớp sắp khai giảng</h5>
+                                    <h3 class="display-4">{{ upcoming_classes }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar me-1"></i>
+                    Thống kê điểm danh
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card bg-primary text-white mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">Điểm danh hôm nay</h5>
+                                    <h3 class="display-4">{{ today_attendance }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-success text-white mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">Có mặt</h5>
+                                    <h3 class="display-4">{{ present_count }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-danger text-white mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">Vắng mặt</h5>
+                                    <h3 class="display-4">{{ absent_count }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ratings and Top Lists -->
+    <div class="row mt-4">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-star me-1"></i>
+                    Đánh giá trung bình
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card bg-warning text-white mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">Đánh giá giáo viên</h5>
+                                    <h3 class="display-4">{{ avg_teacher_rating }}/5</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-warning text-white mb-3">
+                                <div class="card-body">
+                                    <h5 class="card-title">Đánh giá lớp học</h5>
+                                    <h3 class="display-4">{{ avg_class_rating }}/5</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-trophy me-1"></i>
+                    Top đánh giá
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Top giáo viên</h5>
+                            <ul class="list-group">
+                                {% for teacher in top_teachers %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    {{ teacher.full_name }}
+                                    <span class="badge bg-warning rounded-pill">{{ teacher.avg_rating|floatformat:1 }}/5</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Top lớp học</h5>
+                            <ul class="list-group">
+                                {% for class in top_classes %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    {{ class.class_name }}
+                                    <span class="badge bg-warning rounded-pill">{{ class.avg_rating|floatformat:1 }}/5</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
