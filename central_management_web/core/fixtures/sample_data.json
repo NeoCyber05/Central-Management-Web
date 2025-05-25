@@ -1,0 +1,53 @@
+[
+  {
+    "model": "core.nhanvien",
+    "pk": "NV001",
+    "fields": {
+      "full_name": "Nguyễn Văn An",
+      "gender": "M",
+      "birth_day": "1985-05-15",
+      "email": "nva@example.com",
+      "sdt": "0901234567",
+      "address": "123 Đường ABC, TP.HCM"
+    }
+  },
+  {
+    "model": "core.teacher",
+    "pk": "GV001",
+    "fields": {
+      "full_name": "Lê Văn Cường",
+      "gender": "M",
+      "birth_day": "1980-03-10",
+      "email": "lvc@example.com",
+      "sdt": "0912345678",
+      "address": "789 Đường DEF, TP.HCM"
+    }
+  },
+  {
+    "model": "core.hocvien",
+    "pk": "HV001",
+    "fields": {
+      "full_name": "Hoàng Văn Em",
+      "gender": "M",
+      "birth_day": "2000-01-15",
+      "email": "hve@example.com",
+      "sdt": "0934567890",
+      "address": "654 Đường JKL, TP.HCM"
+    }
+  },
+  {
+    "model": "core.class",
+    "pk": "LOP001",
+    "fields": {
+      "nhan_vien": "NV001",
+      "teacher": "GV001",
+      "class_name": "Lập trình Python cơ bản",
+      "class_type": "O",
+      "room": "ONLINE",
+      "khai_giang_date": "2024-01-15",
+      "ket_thuc_date": "2024-04-15",
+      "si_so": 30,
+      "price": 2000000
+    }
+  }
+] 

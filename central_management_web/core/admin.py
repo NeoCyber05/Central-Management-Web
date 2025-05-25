@@ -41,8 +41,8 @@ class ScheduleAdmin(admin.ModelAdmin):
 
 @admin.register(Enrollment)
 class EnrollmentAdmin(admin.ModelAdmin):
-    list_display = ('student', 'class_obj', 'enrollment_date', 'midterm1', 'midterm2', 
-                   'midterm3', 'midterm4', 'final')
+    list_display = ('student', 'class_obj', 'enrollment_date', 'minitest1', 'minitest2', 
+                   'minitest3', 'minitest4', 'midterm', 'final')
     search_fields = ('student__full_name', 'class_obj__class_name')
     list_filter = ('enrollment_date',)
     ordering = ('-enrollment_date',)
