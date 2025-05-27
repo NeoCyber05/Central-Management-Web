@@ -16,6 +16,7 @@ class NhanVien(models.Model):
     class Meta:
         verbose_name = "Nhân Viên"
         verbose_name_plural = "Nhân Viên"
+        db_table = 'NhanVien'
 
 class Teacher(models.Model):
     teacher_id = models.CharField(max_length=8, primary_key=True, verbose_name="Mã Giáo Viên")
@@ -32,6 +33,7 @@ class Teacher(models.Model):
     class Meta:
         verbose_name = "Giáo Viên"
         verbose_name_plural = "Giáo Viên"
+        db_table = 'Teacher'
 
 class HocVien(models.Model):
     student_id = models.CharField(max_length=8, primary_key=True, verbose_name="Mã Học Viên")
@@ -48,6 +50,7 @@ class HocVien(models.Model):
     class Meta:
         verbose_name = "Học Viên"
         verbose_name_plural = "Học Viên"
+        db_table = 'HocVien'
 
 class Class(models.Model):
     class_id = models.CharField(max_length=8, primary_key=True, verbose_name="Mã Lớp học")
@@ -67,6 +70,7 @@ class Class(models.Model):
     class Meta:
         verbose_name = "Lớp Học"
         verbose_name_plural = "Lớp Học"
+        db_table = 'Class'
 
 class Schedule(models.Model):
     id_schedule = models.CharField(max_length=8, primary_key=True, verbose_name="Mã Lịch học")
@@ -81,7 +85,7 @@ class Schedule(models.Model):
     class Meta:
         verbose_name = "Lịch Học"
         verbose_name_plural = "Lịch Học"
-        # unique_together = (('class_obj', 'day', 'start_time'),) # Cân nhắc nếu cần đảm bảo không trùng lịch
+        db_table = 'Schedule'
 
 class Enrollment(models.Model):
     # Composite primary key với student_id và class_id
@@ -101,8 +105,8 @@ class Enrollment(models.Model):
     class Meta:
         verbose_name = "Đăng Ký Học"
         verbose_name_plural = "Đăng Ký Học"
+        db_table = 'Enrollments'
         unique_together = (('student', 'class_obj'),)  # Composite primary key
-        # Trong Django, composite primary key được thực hiện thông qua unique_together
 
 class Attendance(models.Model):
     id_attend = models.CharField(max_length=8, primary_key=True, verbose_name="Mã Điểm danh")
@@ -117,7 +121,7 @@ class Attendance(models.Model):
     class Meta:
         verbose_name = "Điểm Danh"
         verbose_name_plural = "Điểm Danh"
-        # unique_together = (('student', 'class_obj', 'attendance_date'),) # Đảm bảo không điểm danh trùng
+        db_table = 'Attendance'
 
 class FeedBack(models.Model):
     id_feedback = models.CharField(max_length=8, primary_key=True, verbose_name="Mã Feedback")
@@ -134,3 +138,4 @@ class FeedBack(models.Model):
     class Meta:
         verbose_name = "Feedback"
         verbose_name_plural = "Feedback"
+        db_table = 'Feedback'

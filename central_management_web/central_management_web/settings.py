@@ -93,8 +93,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'central_management_db',
-        'USER': 'postgres',  # Thay đổi theo user của bạn
-        'PASSWORD': 'your_password',  # Thay đổi theo password của bạn
+        'USER': 'postgres',   
+        'PASSWORD': '138858', 
         'HOST': 'localhost',
         'PORT': '5432',
     }
