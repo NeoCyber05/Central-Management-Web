@@ -1,0 +1,7 @@
+<h2>{{ action }} giáo viên</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">{{ action }}</button>
+    <a href="{% url 'core:teacher_list' %}">Quay lại</a>
+</form>

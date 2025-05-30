@@ -3,10 +3,13 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User, Group
 from django.db.models import Count, Sum, Avg, Q
-from .models import NhanVien, Teacher, HocVien, Class, Schedule, Enrollment, Attendance, FeedBack
+from .models import nhan_vien, teacher, hoc_vien, clazz, schedule, enrollments, attendance, feedback
 from django.contrib import messages
 from django.utils import timezone
 from datetime import datetime, timedelta
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import teacher
+from .forms import TeacherForm
 
 def is_admin(user):
     return user.is_authenticated and (user.is_superuser or user.is_staff)
@@ -43,32 +46,32 @@ def logout_view(request):
 @user_passes_test(is_admin, login_url='core:login')
 def admin_dashboard(request):
     context = {
-        'total_students': HocVien.objects.count(),
-        'total_teachers': Teacher.objects.count(),
-        'total_classes': Class.objects.count(),
-        'total_schedules': Schedule.objects.count(),
-        'recent_attendance': Attendance.objects.order_by('-attendance_date')[:5],
-        'recent_feedback': FeedBack.objects.order_by('-id_feedback')[:5],
+        'total_students': hoc_vien.objects.count(),
+        'total_teachers': teacher.objects.count(),
+        'total_classes': clazz.objects.count(),
+        'total_schedules': schedule.objects.count(),
+        'recent_attendance': attendance.objects.order_by('-attendance_date')[:5],
+        'recent_feedback': feedback.objects.order_by('-id_feedback')[:5],
     }
     return render(request, 'core/admin_dashboard.html', context)
 
 @login_required
 def statistics(request):
     context = {
-        'student_stats': HocVien.objects.aggregate(
+        'student_stats': hoc_vien.objects.aggregate(
             total=Count('student_id'),
         ),
-        'teacher_stats': Teacher.objects.aggregate(
+        'teacher_stats': teacher.objects.aggregate(
             total=Count('teacher_id'),
         ),
-        'class_stats': Class.objects.aggregate(
+        'class_stats':clazz.objects.aggregate(
             total=Count('class_id'),
         ),
-        'attendance_stats': Attendance.objects.aggregate(
+        'attendance_stats': attendance.objects.aggregate(
             total=Count('id_attend'),
             present=Count('id_attend', filter=Q(status='Có mặt'))
         ),
-        'feedback_stats': FeedBack.objects.aggregate(
+        'feedback_stats': feedback.objects.aggregate(
             total=Count('id_feedback'),
             average_class_rating=Avg('class_rate'),
             average_teacher_rating=Avg('teacher_rate')
@@ -109,7 +112,7 @@ def user_delete(request, pk):
 # Student Management Views
 @login_required
 def student_list(request):
-    students = HocVien.objects.all()
+    students = hoc_vien.objects.all()
     return render(request, 'core/student_list.html', {'students': students})
 
 @login_required
@@ -121,7 +124,7 @@ def student_create(request):
 
 @login_required
 def student_edit(request, pk):
-    student = get_object_or_404(HocVien, pk=pk)
+    student = get_object_or_404(hoc_vien, pk=pk)
     if request.method == 'POST':
         # Handle student update
         pass
@@ -129,7 +132,7 @@ def student_edit(request, pk):
 
 @login_required
 def student_delete(request, pk):
-    student = get_object_or_404(HocVien, pk=pk)
+    student = get_object_or_404(hoc_vien, pk=pk)
     if request.method == 'POST':
         student.delete()
         messages.success(request, 'Học viên đã được xóa thành công')
@@ -137,39 +140,41 @@ def student_delete(request, pk):
     return render(request, 'core/student_confirm_delete.html', {'student': student})
 
 # Teacher Management Views
-@login_required
 def teacher_list(request):
     teachers = Teacher.objects.all()
-    return render(request, 'core/teacher_list.html', {'teachers': teachers})
+    return render(request, 'teachers/teacher_list.html', {'teachers': teachers})
 
-@login_required
 def teacher_create(request):
     if request.method == 'POST':
-        # Handle teacher creation
-        pass
-    return render(request, 'core/teacher_form.html')
+        form = TeacherForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('core:teacher_list')
+    else:
+        form = TeacherForm()
+    return render(request, 'teachers/teacher_form.html', {'form': form, 'action': 'Thêm'})
 
-@login_required
 def teacher_edit(request, pk):
     teacher = get_object_or_404(Teacher, pk=pk)
     if request.method == 'POST':
-        # Handle teacher update
-        pass
-    return render(request, 'core/teacher_form.html', {'teacher': teacher})
+        form = TeacherForm(request.POST, instance=teacher)
+        if form.is_valid():
+            form.save()
+            return redirect('core:teacher_list')
+    else:
+        form = TeacherForm(instance=teacher)
+    return render(request, 'teachers/teacher_form.html', {'form': form, 'action': 'Sửa'})
 
-@login_required
 def teacher_delete(request, pk):
     teacher = get_object_or_404(Teacher, pk=pk)
     if request.method == 'POST':
         teacher.delete()
-        messages.success(request, 'Giáo viên đã được xóa thành công')
         return redirect('core:teacher_list')
-    return render(request, 'core/teacher_confirm_delete.html', {'teacher': teacher})
-
+    return render(request, 'teachers/teacher_confirm_delete.html', {'teacher': teacher})
 # Class Management Views
 @login_required
 def class_list(request):
-    classes = Class.objects.all()
+    classes = clazz.objects.all()
     return render(request, 'core/class_list.html', {'classes': classes})
 
 @login_required
@@ -181,7 +186,7 @@ def class_create(request):
 
 @login_required
 def class_edit(request, pk):
-    class_obj = get_object_or_404(Class, pk=pk)
+    class_obj = get_object_or_404(clazz, pk=pk)
     if request.method == 'POST':
         # Handle class update
         pass
@@ -189,7 +194,7 @@ def class_edit(request, pk):
 
 @login_required
 def class_delete(request, pk):
-    class_obj = get_object_or_404(Class, pk=pk)
+    class_obj = get_object_or_404(clazz, pk=pk)
     if request.method == 'POST':
         class_obj.delete()
         messages.success(request, 'Lớp học đã được xóa thành công')
@@ -199,7 +204,7 @@ def class_delete(request, pk):
 # Schedule Management Views
 @login_required
 def schedule_list(request):
-    schedules = Schedule.objects.all()
+    schedules = schedule.objects.all()
     return render(request, 'core/schedule_list.html', {'schedules': schedules})
 
 @login_required
@@ -211,7 +216,7 @@ def schedule_create(request):
 
 @login_required
 def schedule_edit(request, pk):
-    schedule = get_object_or_404(Schedule, pk=pk)
+    schedule = get_object_or_404(schedule, pk=pk)
     if request.method == 'POST':
         # Handle schedule update
         pass
@@ -219,7 +224,7 @@ def schedule_edit(request, pk):
 
 @login_required
 def schedule_delete(request, pk):
-    schedule = get_object_or_404(Schedule, pk=pk)
+    schedule = get_object_or_404(schedule, pk=pk)
     if request.method == 'POST':
         schedule.delete()
         messages.success(request, 'Lịch học đã được xóa thành công')
@@ -229,7 +234,7 @@ def schedule_delete(request, pk):
 # Attendance Management Views
 @login_required
 def attendance_list(request):
-    attendance_records = Attendance.objects.all()
+    attendance_records = attendance.objects.all()
     return render(request, 'core/attendance_list.html', {'attendance_records': attendance_records})
 
 @login_required
@@ -241,7 +246,7 @@ def attendance_create(request):
 
 @login_required
 def attendance_edit(request, pk):
-    attendance = get_object_or_404(Attendance, pk=pk)
+    attendance = get_object_or_404(attendance, pk=pk)
     if request.method == 'POST':
         # Handle attendance update
         pass
@@ -249,7 +254,7 @@ def attendance_edit(request, pk):
 
 @login_required
 def attendance_delete(request, pk):
-    attendance = get_object_or_404(Attendance, pk=pk)
+    attendance = get_object_or_404(attendance, pk=pk)
     if request.method == 'POST':
         attendance.delete()
         messages.success(request, 'Điểm danh đã được xóa thành công')
@@ -259,17 +264,17 @@ def attendance_delete(request, pk):
 # Feedback Management Views
 @login_required
 def feedback_list(request):
-    feedbacks = FeedBack.objects.all()
+    feedbacks = feedback.objects.all()
     return render(request, 'core/feedback_list.html', {'feedbacks': feedbacks})
 
 @login_required
 def feedback_view(request, pk):
-    feedback = get_object_or_404(FeedBack, pk=pk)
+    feedback = get_object_or_404(feedback, pk=pk)
     return render(request, 'core/feedback_detail.html', {'feedback': feedback})
 
 @login_required
 def feedback_delete(request, pk):
-    feedback = get_object_or_404(FeedBack, pk=pk)
+    feedback = get_object_or_404(feedback, pk=pk)
     if request.method == 'POST':
         feedback.delete()
         messages.success(request, 'Đánh giá đã được xóa thành công')

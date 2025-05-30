@@ -30,6 +30,8 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
+CORS_ALLOWED_ORIGINS = ['http://localhost:3000']  # Frontend URL
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -39,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -50,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'core.middleware.LoginRequiredMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 # Add login URL

@@ -1,0 +1,23 @@
+<h2>Danh sách giáo viên</h2>
+<a href="{% url 'core:teacher_create' %}">Thêm giáo viên</a>
+<table border="1">
+    <tr>
+        <th>Mã</th><th>Họ tên</th><th>Giới tính</th><th>Ngày sinh</th><th>Email</th><th>SĐT</th><th>Địa chỉ</th><th>Trình độ</th><th>Hành động</th>
+    </tr>
+    {% for t in teachers %}
+    <tr>
+        <td>{{ t.teacher_id }}</td>
+        <td>{{ t.full_name }}</td>
+        <td>{{ t.gender }}</td>
+        <td>{{ t.birth_day }}</td>
+        <td>{{ t.email }}</td>
+        <td>{{ t.sdt }}</td>
+        <td>{{ t.address }}</td>
+        <td>{{ t.trinh_do }}</td>
+        <td>
+            <a href="{% url 'core:teacher_edit' t.teacher_id %}">Sửa</a> | 
+            <a href="{% url 'core:teacher_delete' t.teacher_id %}">Xóa</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>

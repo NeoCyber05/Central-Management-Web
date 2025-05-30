@@ -1,28 +1,31 @@
 from django.contrib import admin
-from .models import NhanVien, Teacher, HocVien, Class, Schedule, Enrollment, Attendance, FeedBack
+from .models import nhan_vien, teacher, hoc_vien, clazz, schedule, enrollments, attendance, feedback
 
-@admin.register(NhanVien)
+
+
+
+@admin.register(nhan_vien)
 class NhanVienAdmin(admin.ModelAdmin):
     list_display = ('ma_nv', 'full_name', 'gender', 'birth_day', 'email', 'sdt', 'address')
     search_fields = ('ma_nv', 'full_name', 'email', 'sdt')
     list_filter = ('gender',)
     ordering = ('ma_nv',)
 
-@admin.register(Teacher)
+@admin.register(teacher)
 class TeacherAdmin(admin.ModelAdmin):
     list_display = ('teacher_id', 'full_name', 'gender', 'birth_day', 'email', 'sdt', 'address')
     search_fields = ('teacher_id', 'full_name', 'email', 'sdt')
     list_filter = ('gender',)
     ordering = ('teacher_id',)
 
-@admin.register(HocVien)
+@admin.register(hoc_vien)
 class HocVienAdmin(admin.ModelAdmin):
     list_display = ('student_id', 'full_name', 'gender', 'birth_day', 'email', 'sdt', 'address')
     search_fields = ('student_id', 'full_name', 'email', 'sdt')
     list_filter = ('gender',)
     ordering = ('student_id',)
 
-@admin.register(Class)
+@admin.register(clazz)
 class ClassAdmin(admin.ModelAdmin):
     list_display = ('class_id', 'class_name', 'nhan_vien', 'teacher', 'class_type', 'room', 
                    'khai_giang_date', 'ket_thuc_date', 'si_so', 'price')
@@ -31,7 +34,7 @@ class ClassAdmin(admin.ModelAdmin):
     ordering = ('class_id',)
     raw_id_fields = ('nhan_vien', 'teacher')
 
-@admin.register(Schedule)
+@admin.register(schedule)
 class ScheduleAdmin(admin.ModelAdmin):
     list_display = ('id_schedule', 'class_obj', 'day', 'start_time', 'end_time')
     search_fields = ('id_schedule', 'class_obj__class_name', 'day')
@@ -39,7 +42,7 @@ class ScheduleAdmin(admin.ModelAdmin):
     ordering = ('id_schedule',)
     raw_id_fields = ('class_obj',)
 
-@admin.register(Enrollment)
+@admin.register(enrollments)
 class EnrollmentAdmin(admin.ModelAdmin):
     list_display = ('student', 'class_obj', 'enrollment_date', 'minitest1', 'minitest2', 
                    'minitest3', 'minitest4', 'midterm', 'final')
@@ -48,7 +51,7 @@ class EnrollmentAdmin(admin.ModelAdmin):
     ordering = ('-enrollment_date',)
     raw_id_fields = ('student', 'class_obj')
 
-@admin.register(Attendance)
+@admin.register(attendance)
 class AttendanceAdmin(admin.ModelAdmin):
     list_display = ('id_attend', 'student', 'class_obj', 'attendance_date', 'status')
     search_fields = ('id_attend', 'student__full_name', 'class_obj__class_name')
@@ -56,7 +59,7 @@ class AttendanceAdmin(admin.ModelAdmin):
     ordering = ('-attendance_date',)
     raw_id_fields = ('student', 'class_obj')
 
-@admin.register(FeedBack)
+@admin.register(feedback)
 class FeedBackAdmin(admin.ModelAdmin):
     list_display = ('id_feedback', 'student', 'class_obj', 'teacher', 'class_rate', 'teacher_rate')
     search_fields = ('id_feedback', 'student__full_name', 'class_obj__class_name', 'teacher__full_name')

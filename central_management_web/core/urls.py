@@ -33,8 +33,8 @@ urlpatterns = [
     # Teacher Management
     path('teachers/', views.teacher_list, name='teacher_list'),
     path('teachers/create/', views.teacher_create, name='teacher_create'),
-    path('teachers/<int:pk>/edit/', views.teacher_edit, name='teacher_edit'),
-    path('teachers/<int:pk>/delete/', views.teacher_delete, name='teacher_delete'),
+    path('teachers/<str:pk>/edit/', views.teacher_edit, name='teacher_edit'),
+    path('teachers/<str:pk>/delete/', views.teacher_delete, name='teacher_delete'),
 
     # Class Management
     path('classes/', views.class_list, name='class_list'),

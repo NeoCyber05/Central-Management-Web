@@ -20,5 +20,6 @@ from django.shortcuts import redirect
 
 urlpatterns = [
     path('django-admin/', admin.site.urls),
+      
     path('', include('core.urls')),
 ]

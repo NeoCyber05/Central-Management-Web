@@ -1,7 +1,7 @@
 from django.db import models
 
 
-class NhanVien(models.Model):
+class nhan_vien(models.Model):
     ma_nv = models.CharField(max_length=8, primary_key=True, verbose_name="Mã Nhân Viên")
     full_name = models.CharField(max_length=40, verbose_name="Họ và Tên")
     gender = models.CharField(max_length=1, verbose_name="Giới tính") # ví dụ: ('M', 'Nam'), ('F', 'Nữ')
@@ -16,16 +16,17 @@ class NhanVien(models.Model):
     class Meta:
         verbose_name = "Nhân Viên"
         verbose_name_plural = "Nhân Viên"
-        db_table = 'NhanVien'
+        db_table = 'nhan_vien'
 
-class Teacher(models.Model):
+class teacher(models.Model):
     teacher_id = models.CharField(max_length=8, primary_key=True, verbose_name="Mã Giáo Viên")
     full_name = models.CharField(max_length=40, verbose_name="Họ và Tên")
-    gender = models.CharField(max_length=1, verbose_name="Giới tính") # Cân nhắc dùng choices
+    gender = models.CharField(max_length=1, verbose_name="Giới tính") 
     birth_day = models.DateField(verbose_name="Ngày sinh")
     email = models.EmailField(max_length=40, unique=True, verbose_name="Email")
     sdt = models.CharField(max_length=15, verbose_name="Số điện thoại")
     address = models.CharField(max_length=30, verbose_name="Địa chỉ")
+    trinh_do = models.CharField(max_length=10, verbose_name="Trình độ" , default="Cử nhân") 
 
     def __str__(self):
         return f"{self.full_name} ({self.teacher_id})"
@@ -33,9 +34,9 @@ class Teacher(models.Model):
     class Meta:
         verbose_name = "Giáo Viên"
         verbose_name_plural = "Giáo Viên"
-        db_table = 'Teacher'
+        db_table = 'teacher'
 
-class HocVien(models.Model):
+class hoc_vien(models.Model):
     student_id = models.CharField(max_length=8, primary_key=True, verbose_name="Mã Học Viên")
     full_name = models.CharField(max_length=40, verbose_name="Họ và Tên")
     gender = models.CharField(max_length=1, verbose_name="Giới tính") 
@@ -50,12 +51,12 @@ class HocVien(models.Model):
     class Meta:
         verbose_name = "Học Viên"
         verbose_name_plural = "Học Viên"
-        db_table = 'HocVien'
+        db_table = 'hoc_vien'
 
-class Class(models.Model):
+class clazz(models.Model):
     class_id = models.CharField(max_length=8, primary_key=True, verbose_name="Mã Lớp học")
-    nhan_vien = models.ForeignKey(NhanVien, on_delete=models.SET_NULL, null=True, blank=True, db_column='MaNV', verbose_name="Nhân viên quản lý")
-    teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True, blank=True, db_column='teacher_id', verbose_name="Giáo viên")
+    nhan_vien = models.ForeignKey(nhan_vien, on_delete=models.SET_NULL, null=True, blank=True, db_column='MaNV', verbose_name="Nhân viên quản lý")
+    teacher = models.ForeignKey(teacher, on_delete=models.SET_NULL, null=True, blank=True, db_column='teacher_id', verbose_name="Giáo viên")
     class_name = models.CharField(max_length=40, verbose_name="Tên lớp học")
     class_type = models.CharField(max_length=1, verbose_name="Loại lớp") 
     room = models.CharField(max_length=15, verbose_name="Phòng học")
@@ -70,11 +71,11 @@ class Class(models.Model):
     class Meta:
         verbose_name = "Lớp Học"
         verbose_name_plural = "Lớp Học"
-        db_table = 'Class'
+        db_table = 'clazz'
 
-class Schedule(models.Model):
+class schedule(models.Model):
     id_schedule = models.CharField(max_length=8, primary_key=True, verbose_name="Mã Lịch học")
-    class_obj = models.ForeignKey(Class, on_delete=models.CASCADE, db_column='class_id', related_name='schedules', verbose_name="Lớp học")
+    class_obj = models.ForeignKey(clazz, on_delete=models.CASCADE, db_column='class_id', related_name='schedules', verbose_name="Lớp học")
     day = models.CharField(max_length=20, verbose_name="Ngày trong tuần/Buổi học") # Ví dụ: "Thứ 2", "Buổi 1" hoặc một ngày cụ thể
     start_time = models.TimeField(verbose_name="Thời gian bắt đầu")
     end_time = models.TimeField(verbose_name="Thời gian kết thúc")
@@ -85,19 +86,19 @@ class Schedule(models.Model):
     class Meta:
         verbose_name = "Lịch Học"
         verbose_name_plural = "Lịch Học"
-        db_table = 'Schedule'
+        db_table = 'schedule'
 
-class Enrollment(models.Model):
+class enrollments(models.Model):
     # Composite primary key với student_id và class_id
-    student = models.ForeignKey(HocVien, on_delete=models.CASCADE, db_column='student_id', verbose_name="Học viên")
-    class_obj = models.ForeignKey(Class, on_delete=models.CASCADE, db_column='class_id', verbose_name="Lớp học")
+    student = models.ForeignKey(hoc_vien, on_delete=models.CASCADE, db_column='student_id', verbose_name="Học viên")
+    class_obj = models.ForeignKey(clazz, on_delete=models.CASCADE, db_column='class_id', verbose_name="Lớp học")
     enrollment_date = models.DateField(verbose_name="Ngày đăng ký")
-    minitest1 = models.FloatField(null=True, blank=True, verbose_name="Điểm minitest 1")
-    minitest2 = models.FloatField(null=True, blank=True, verbose_name="Điểm minitest 2")
-    minitest3 = models.FloatField(null=True, blank=True, verbose_name="Điểm minitest 3")
-    minitest4 = models.FloatField(null=True, blank=True, verbose_name="Điểm minitest 4")
-    midterm = models.FloatField(null=True, blank=True, verbose_name="Điểm giữa kỳ")
-    final = models.FloatField(null=True, blank=True, verbose_name="Điểm cuối kỳ")
+    minitest1 = models.DecimalField(null=True, blank=True, max_digits=4, decimal_places=2, verbose_name="Điểm minitest 1")
+    minitest2 = models.DecimalField(null=True, blank=True, max_digits=4, decimal_places=2, verbose_name="Điểm minitest 2")
+    minitest3 = models.DecimalField(null=True, blank=True, max_digits=4, decimal_places=2, verbose_name="Điểm minitest 3")
+    minitest4 = models.DecimalField(null=True, blank=True, max_digits=4, decimal_places=2, verbose_name="Điểm minitest 4")
+    midterm   = models.DecimalField(null=True, blank=True, max_digits=4, decimal_places=2, verbose_name="Điểm giữa kỳ")
+    final     = models.DecimalField(null=True, blank=True, max_digits=4, decimal_places=2, verbose_name="Điểm cuối kỳ")
 
     def __str__(self):
         return f"{self.student.full_name} đăng ký lớp {self.class_obj.class_name}"
@@ -105,15 +106,15 @@ class Enrollment(models.Model):
     class Meta:
         verbose_name = "Đăng Ký Học"
         verbose_name_plural = "Đăng Ký Học"
-        db_table = 'Enrollments'
+        db_table = 'enrollments'
         unique_together = (('student', 'class_obj'),)  # Composite primary key
 
-class Attendance(models.Model):
+class attendance(models.Model):
     id_attend = models.CharField(max_length=8, primary_key=True, verbose_name="Mã Điểm danh")
-    student = models.ForeignKey(HocVien, on_delete=models.CASCADE, db_column='student_id', verbose_name="Học viên")
-    class_obj = models.ForeignKey(Class, on_delete=models.CASCADE, db_column='class_id', verbose_name="Lớp học")
+    student = models.ForeignKey(hoc_vien, on_delete=models.CASCADE, db_column='student_id', verbose_name="Học viên")
+    class_obj = models.ForeignKey(clazz, on_delete=models.CASCADE, db_column='class_id', verbose_name="Lớp học")
     attendance_date = models.DateField(verbose_name="Ngày điểm danh")
-    status = models.CharField(max_length=15, verbose_name="Trạng thái") # Ví dụ: 'Có mặt', 'Vắng', 'Trễ'
+    status = models.CharField(max_length=15, verbose_name="Trạng thái") # Ví dụ: 'Có mặt', 'Vắng'
 
     def __str__(self):
         return f"Điểm danh {self.student.full_name} - Lớp {self.class_obj.class_name} - Ngày {self.attendance_date}"
@@ -121,21 +122,20 @@ class Attendance(models.Model):
     class Meta:
         verbose_name = "Điểm Danh"
         verbose_name_plural = "Điểm Danh"
-        db_table = 'Attendance'
+        db_table = 'attendance'
 
-class FeedBack(models.Model):
+class feedback(models.Model):
     id_feedback = models.CharField(max_length=8, primary_key=True, verbose_name="Mã Feedback")
-    student = models.ForeignKey(HocVien, on_delete=models.CASCADE, db_column='student_id', verbose_name="Học viên")
-    class_obj = models.ForeignKey(Class, on_delete=models.CASCADE, db_column='class_id', verbose_name="Lớp học")
-    teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True, blank=True, db_column='teacher_id', verbose_name="Giáo viên")
+    student = models.ForeignKey(hoc_vien, on_delete=models.CASCADE, db_column='student_id', verbose_name="Học viên")
+    class_obj = models.ForeignKey(clazz, on_delete=models.CASCADE, db_column='class_id', verbose_name="Lớp học")
+    teacher = models.ForeignKey(teacher, on_delete=models.SET_NULL, null=True, blank=True, db_column='teacher_id', verbose_name="Giáo viên")
     class_rate = models.FloatField(null=True, blank=True, verbose_name="Đánh giá lớp học") # Ví dụ: thang điểm 1-5
     teacher_rate = models.FloatField(null=True, blank=True, verbose_name="Đánh giá giáo viên") # Ví dụ: thang điểm 1-5
-    # content = models.TextField(null=True, blank=True, verbose_name="Nội dung feedback") # Có thể thêm nếu cần feedback dạng văn bản
-
+ 
     def __str__(self):
         return f"Feedback {self.id_feedback} từ {self.student.full_name} cho lớp {self.class_obj.class_name}"
 
     class Meta:
         verbose_name = "Feedback"
         verbose_name_plural = "Feedback"
-        db_table = 'Feedback'
+        db_table = 'feedback'

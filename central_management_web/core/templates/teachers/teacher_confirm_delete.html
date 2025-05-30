@@ -1,0 +1,7 @@
+<h2>Xác nhận xóa giáo viên</h2>
+<p>Bạn có chắc chắn muốn xóa giáo viên "{{ teacher.full_name }}"?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Xóa</button>
+    <a href="{% url 'core:teacher_list' %}">Hủy</a>
+</form>

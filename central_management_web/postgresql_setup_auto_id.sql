@@ -173,8 +173,8 @@ CREATE TABLE Feedback (
     student_id VARCHAR(8) NOT NULL REFERENCES HocVien(student_id) ON DELETE CASCADE,
     class_id VARCHAR(8) NOT NULL REFERENCES Class(class_id) ON DELETE CASCADE,
     teacher_id VARCHAR(8) REFERENCES Teacher(teacher_id) ON DELETE SET NULL,
-    class_rate REAL CHECK (class_rate >= 1 AND class_rate <= 5),
-    teacher_rate REAL CHECK (teacher_rate >= 1 AND teacher_rate <= 5)
+    class_rate FLOAT CHECK (class_rate >= 0 AND class_rate <= 10),
+    teacher_rate FLOAT CHECK (teacher_rate >= 0 AND teacher_rate <= 10)
 );
 
 -- =====================================================
