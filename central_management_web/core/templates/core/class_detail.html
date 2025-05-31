@@ -1,0 +1,77 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+            <h3>Chi tiết lớp: {{ class_obj.class_name }} ({{ class_obj.class_id }})</h3>
+        </div>
+        <div class="card-body">
+            <p><strong>Giáo viên:</strong> {{ class_obj.teacher.full_name }}</p>
+            <p><strong>Nhân viên quản lý:</strong> {{ class_obj.nhan_vien.full_name }}</p>
+            <p><strong>Loại lớp:</strong> {{ class_obj.class_type }}</p>
+            <p><strong>Phòng học:</strong> {{ class_obj.room }}</p>
+            <p><strong>Ngày khai giảng:</strong> {{ class_obj.khai_giang }}</p>
+            <p><strong>Ngày kết thúc:</strong> {{ class_obj.ket_thuc }}</p>
+            <p><strong>Sĩ số tối đa:</strong> {{ class_obj.si_so }}</p>
+            <p><strong>Học phí:</strong> {{ class_obj.price|floatformat:0 }} VNĐ</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5>Danh sách học viên đã đăng ký</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-striped mb-0">
+                        <thead>
+                            <tr>
+                                <th>Mã HV</th>
+                                <th>Họ tên</th>
+                                <th>Email</th>
+                                <th>Ngày đăng ký</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for enroll in enrolls %}
+                            <tr>
+                                <td>{{ enroll.student.student_id }}</td>
+                                <td>{{ enroll.student.full_name }}</td>
+                                <td>{{ enroll.student.email }}</td>
+                                <td>{{ enroll.enrollment_date }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr><td colspan="4" class="text-center">Chưa có học viên đăng ký</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5>Thêm học viên vào lớp</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="student_id">Chọn học viên:</label>
+                            <select class="form-control" name="student_id" id="student_id" required>
+                                <option value="">-- Chọn học viên --</option>
+                                {% for s in students %}
+                                    <option value="{{ s.student_id }}">{{ s.full_name }} ({{ s.student_id }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-2">Thêm vào lớp</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <a href="{% url 'core:class_list' %}" class="btn btn-secondary mt-3">Quay lại danh sách lớp</a>
+</div>
+{% endblock %} 

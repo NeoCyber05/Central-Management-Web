@@ -9,7 +9,8 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import teacher
-from .forms import TeacherForm
+from .forms import TeacherForm, HocVienForm, ClassForm, NhanVienForm
+
 
 def is_admin(user):
     return user.is_authenticated and (user.is_superuser or user.is_staff)
@@ -118,30 +119,39 @@ def student_list(request):
 @login_required
 def student_create(request):
     if request.method == 'POST':
-        # Handle student creation
-        pass
-    return render(request, 'core/student_form.html')
+        form = HocVienForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('core:student_list')
+    else:
+        form = HocVienForm()
+    return render(request, 'students/student_form.html', {'form': form, 'action': 'Thêm'})
 
 @login_required
 def student_edit(request, pk):
     student = get_object_or_404(hoc_vien, pk=pk)
     if request.method == 'POST':
-        # Handle student update
-        pass
-    return render(request, 'core/student_form.html', {'student': student})
+        form = HocVienForm(request.POST, instance=student)
+        if form.is_valid():
+            form.save()
+            return redirect('core:student_list')
+    else:
+        form = HocVienForm(instance=student)
+    return render(request, 'students/student_form.html', {'form': form, 'action': 'Sửa'})
 
 @login_required
 def student_delete(request, pk):
     student = get_object_or_404(hoc_vien, pk=pk)
     if request.method == 'POST':
         student.delete()
-        messages.success(request, 'Học viên đã được xóa thành công')
         return redirect('core:student_list')
-    return render(request, 'core/student_confirm_delete.html', {'student': student})
+    return render(request, 'students/student_confirm_delete.html', {'student': student})
 
+#-------------------------------
 # Teacher Management Views
+#-------------------------------
 def teacher_list(request):
-    teachers = Teacher.objects.all()
+    teachers = teacher.objects.all()
     return render(request, 'teachers/teacher_list.html', {'teachers': teachers})
 
 def teacher_create(request):
@@ -152,26 +162,29 @@ def teacher_create(request):
             return redirect('core:teacher_list')
     else:
         form = TeacherForm()
-    return render(request, 'teachers/teacher_form.html', {'form': form, 'action': 'Thêm'})
+    return render(request, 'core/teacher_form.html', {'form': form, 'action': 'Thêm'})
 
 def teacher_edit(request, pk):
-    teacher = get_object_or_404(Teacher, pk=pk)
+    gv = get_object_or_404(teacher, pk=pk)
     if request.method == 'POST':
-        form = TeacherForm(request.POST, instance=teacher)
+        form = TeacherForm(request.POST, instance=gv)
         if form.is_valid():
             form.save()
             return redirect('core:teacher_list')
     else:
-        form = TeacherForm(instance=teacher)
-    return render(request, 'teachers/teacher_form.html', {'form': form, 'action': 'Sửa'})
+        form = TeacherForm(instance=gv)
+    return render(request, 'core/teacher_form.html', {'form': form, 'action': 'Sửa'})
 
 def teacher_delete(request, pk):
-    teacher = get_object_or_404(Teacher, pk=pk)
+    gv = get_object_or_404(teacher, pk=pk)
     if request.method == 'POST':
-        teacher.delete()
+        gv.delete()
         return redirect('core:teacher_list')
-    return render(request, 'teachers/teacher_confirm_delete.html', {'teacher': teacher})
+    return render(request, 'core/teacher_confirm_delete.html', {'teacher': gv})
+
+#-------------------------------
 # Class Management Views
+#-------------------------------
 @login_required
 def class_list(request):
     classes = clazz.objects.all()
@@ -180,28 +193,52 @@ def class_list(request):
 @login_required
 def class_create(request):
     if request.method == 'POST':
-        # Handle class creation
-        pass
-    return render(request, 'core/class_form.html')
+        form = ClassForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('core:class_list')
+    else:
+        form = ClassForm()
+    return render(request, 'core/class_form.html', {'form': form, 'action': 'Thêm'})
 
 @login_required
 def class_edit(request, pk):
     class_obj = get_object_or_404(clazz, pk=pk)
     if request.method == 'POST':
-        # Handle class update
-        pass
-    return render(request, 'core/class_form.html', {'class': class_obj})
+        form = ClassForm(request.POST, instance=class_obj)
+        if form.is_valid():
+            form.save()
+            return redirect('core:class_list')
+    else:
+        form = ClassForm(instance=class_obj)
+    return render(request, 'classes/class_form.html', {'form': form, 'action': 'Sửa'})
 
 @login_required
 def class_delete(request, pk):
     class_obj = get_object_or_404(clazz, pk=pk)
     if request.method == 'POST':
         class_obj.delete()
-        messages.success(request, 'Lớp học đã được xóa thành công')
         return redirect('core:class_list')
-    return render(request, 'core/class_confirm_delete.html', {'class': class_obj})
+    return render(request, 'classes/class_confirm_delete.html', {'class_obj': class_obj})
+def class_detail(request, pk):
+    class_obj = get_object_or_404(clazz, pk=pk)
+    enrolls = enrollments.objects.filter(class_obj=class_obj)
+    students = hoc_vien.objects.exclude(enrollments__class_obj=class_obj)
+    if request.method == 'POST':
+        student_id = request.POST.get('student_id')
+        if student_id:
+            student = hoc_vien.objects.get(student_id=student_id)
+            enrollments.objects.create(student=student, class_obj=class_obj, enrollment_date=timezone.now())
+            return redirect('core:class_detail', pk=pk)
+    return render(request, 'core/class_detail.html', {
+        'class_obj': class_obj,
+        'enrolls': enrolls,
+        'students': students
+    })
 
+#-------------------------------
 # Schedule Management Views
+#-------------------------------
 @login_required
 def schedule_list(request):
     schedules = schedule.objects.all()
@@ -281,3 +318,41 @@ def feedback_delete(request, pk):
         return redirect('core:feedback_list')
     return render(request, 'core/feedback_confirm_delete.html', {'feedback': feedback})
 
+#-------------------------------
+# Nhan Vien Management Views
+#-------------------------------
+@login_required
+def nhanvien_list(request):
+    nhanviens = nhan_vien.objects.all()
+    return render(request, 'core/nhanvien_list.html', {'nhanviens': nhanviens})
+
+@login_required
+def nhanvien_create(request):
+    if request.method == 'POST':
+        form = NhanVienForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('core:nhanvien_list')
+    else:
+        form = NhanVienForm()
+    return render(request, 'core/nhanvien_form.html', {'form': form, 'action': 'Thêm'})
+
+@login_required
+def nhanvien_edit(request, pk):
+    nv = get_object_or_404(nhan_vien, pk=pk)
+    if request.method == 'POST':
+        form = NhanVienForm(request.POST, instance=nv)
+        if form.is_valid():
+            form.save()
+            return redirect('core:nhanvien_list')
+    else:
+        form = NhanVienForm(instance=nv)
+    return render(request, 'core/nhanvien_form.html', {'form': form, 'action': 'Sửa'})
+
+@login_required
+def nhanvien_delete(request, pk):
+    nv = get_object_or_404(nhan_vien, pk=pk)
+    if request.method == 'POST':
+        nv.delete()
+        return redirect('core:nhanvien_list')
+    return render(request, 'core/nhanvien_confirm_delete.html', {'nhanvien': nv})

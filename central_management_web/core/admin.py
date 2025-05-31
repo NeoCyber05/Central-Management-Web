@@ -6,10 +6,10 @@ from .models import nhan_vien, teacher, hoc_vien, clazz, schedule, enrollments, 
 
 @admin.register(nhan_vien)
 class NhanVienAdmin(admin.ModelAdmin):
-    list_display = ('ma_nv', 'full_name', 'gender', 'birth_day', 'email', 'sdt', 'address')
-    search_fields = ('ma_nv', 'full_name', 'email', 'sdt')
+    list_display = ('nv_id', 'full_name', 'gender', 'birth_day', 'email', 'sdt', 'address')
+    search_fields = ('nv_id', 'full_name', 'email', 'sdt')
     list_filter = ('gender',)
-    ordering = ('ma_nv',)
+    ordering = ('nv_id',)
 
 @admin.register(teacher)
 class TeacherAdmin(admin.ModelAdmin):
@@ -27,10 +27,10 @@ class HocVienAdmin(admin.ModelAdmin):
 
 @admin.register(clazz)
 class ClassAdmin(admin.ModelAdmin):
-    list_display = ('class_id', 'class_name', 'nhan_vien', 'teacher', 'class_type', 'room', 
-                   'khai_giang_date', 'ket_thuc_date', 'si_so', 'price')
+    list_display = ('class_id', 'class_name', 'nhan_vien', 'teacher', 'type', 'room', 
+                   'khai_giang', 'ket_thuc', 'si_so', 'price')
     search_fields = ('class_id', 'class_name', 'room')
-    list_filter = ('class_type', 'khai_giang_date', 'ket_thuc_date')
+    list_filter = ('type', 'khai_giang', 'ket_thuc')
     ordering = ('class_id',)
     raw_id_fields = ('nhan_vien', 'teacher')
 

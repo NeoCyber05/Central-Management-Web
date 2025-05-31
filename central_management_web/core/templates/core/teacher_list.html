@@ -3,70 +3,48 @@
 {% block title %}Quản lý giáo viên{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="card-title mb-0">
-                <i class="fas fa-chalkboard-teacher"></i> Danh sách giáo viên
-            </h5>
-            <a href="{% url 'core:teacher_create' %}" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Thêm giáo viên
-            </a>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Họ tên</th>
-                            <th>Email</th>
-                            <th>Số điện thoại</th>
-                            <th>Môn dạy</th>
-                            <th>Lớp phụ trách</th>
-                            <th>Trạng thái</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for teacher in teachers %}
-                        <tr>
-                            <td>{{ teacher.id }}</td>
-                            <td>{{ teacher.name }}</td>
-                            <td>{{ teacher.email }}</td>
-                            <td>{{ teacher.phone }}</td>
-                            <td>{{ teacher.subject }}</td>
-                            <td>
-                                {% for class in teacher.classes.all %}
-                                <span class="badge bg-info">{{ class.name }}</span>
-                                {% endfor %}
-                            </td>
-                            <td>
-                                {% if teacher.is_active %}
-                                <span class="badge bg-success">Đang dạy</span>
-                                {% else %}
-                                <span class="badge bg-danger">Nghỉ dạy</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="btn-group">
-                                    <a href="{% url 'core:teacher_edit' teacher.id %}" class="btn btn-sm btn-info" data-bs-toggle="tooltip" title="Sửa">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <a href="{% url 'core:teacher_delete' teacher.id %}" class="btn btn-sm btn-danger delete-confirm" data-bs-toggle="tooltip" title="Xóa">
-                                        <i class="fas fa-trash"></i>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="8" class="text-center">Không có dữ liệu</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Danh sách giáo viên</h2>
+        <a href="{% url 'core:teacher_create' %}" class="btn btn-success">+ Thêm giáo viên</a>
+    </div>
+    <div class="card shadow">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã GV</th>
+                        <th>Họ tên</th>
+                        <th>Giới tính</th>
+                        <th>Ngày sinh</th>
+                        <th>Email</th>
+                        <th>SĐT</th>
+                        <th>Địa chỉ</th>
+                        <th>Trình độ</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for gv in teachers %}
+                    <tr>
+                        <td>{{ gv.teacher_id }}</td>
+                        <td>{{ gv.full_name }}</td>
+                        <td>{{ gv.gender }}</td>
+                        <td>{{ gv.birth_day }}</td>
+                        <td>{{ gv.email }}</td>
+                        <td>{{ gv.sdt }}</td>
+                        <td>{{ gv.address }}</td>
+                        <td>{{ gv.trinh_do }}</td>
+                        <td>
+                            <a href="{% url 'core:teacher_edit' gv.teacher_id %}" class="btn btn-sm btn-warning">Sửa</a>
+                            <a href="{% url 'core:teacher_delete' gv.teacher_id %}" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa giáo viên này?');">Xóa</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="9" class="text-center">Chưa có giáo viên nào.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

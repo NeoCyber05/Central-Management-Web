@@ -1,29 +1,34 @@
 from django.db import models
 
-
 class nhan_vien(models.Model):
-    ma_nv = models.CharField(max_length=8, primary_key=True, verbose_name="Mã Nhân Viên")
+    nv_id = models.AutoField(primary_key=True, verbose_name="Mã Nhân Viên")
     full_name = models.CharField(max_length=40, verbose_name="Họ và Tên")
     gender = models.CharField(max_length=1, verbose_name="Giới tính") # ví dụ: ('M', 'Nam'), ('F', 'Nữ')
     birth_day = models.DateField(verbose_name="Ngày sinh")
-    email = models.EmailField(max_length=40, unique=True, verbose_name="Email")
+    email = models.EmailField(max_length=40, verbose_name="Email")
     sdt = models.CharField(max_length=15, verbose_name="Số điện thoại")
     address = models.CharField(max_length=30, verbose_name="Địa chỉ")
 
     def __str__(self):
-        return f"{self.full_name} ({self.ma_nv})"
+        return f"{self.full_name} ({self.nv_id})"
 
     class Meta:
         verbose_name = "Nhân Viên"
         verbose_name_plural = "Nhân Viên"
         db_table = 'nhan_vien'
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(gender__in=['M', 'F']),
+                name='nhan_vien_gender_valid'
+            ),
+        ]
 
 class teacher(models.Model):
-    teacher_id = models.CharField(max_length=8, primary_key=True, verbose_name="Mã Giáo Viên")
+    teacher_id = models.AutoField(primary_key=True, verbose_name="Mã Giáo Viên")
     full_name = models.CharField(max_length=40, verbose_name="Họ và Tên")
     gender = models.CharField(max_length=1, verbose_name="Giới tính") 
     birth_day = models.DateField(verbose_name="Ngày sinh")
-    email = models.EmailField(max_length=40, unique=True, verbose_name="Email")
+    email = models.EmailField(max_length=40,  verbose_name="Email")
     sdt = models.CharField(max_length=15, verbose_name="Số điện thoại")
     address = models.CharField(max_length=30, verbose_name="Địa chỉ")
     trinh_do = models.CharField(max_length=10, verbose_name="Trình độ" , default="Cử nhân") 
@@ -35,13 +40,23 @@ class teacher(models.Model):
         verbose_name = "Giáo Viên"
         verbose_name_plural = "Giáo Viên"
         db_table = 'teacher'
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(gender__in=['M', 'F']),
+                name='giao_vien_gender_valid'
+            ),
+            models.CheckConstraint(
+                check=models.Q(trinh_do__in=['Cử nhân', 'Thạc Sĩ', 'Tiến Sĩ']),
+                name='teacher_trinh_do_valid'
+            ),
+        ]
 
 class hoc_vien(models.Model):
-    student_id = models.CharField(max_length=8, primary_key=True, verbose_name="Mã Học Viên")
+    student_id = models.AutoField(primary_key=True, verbose_name="Mã Học Viên")
     full_name = models.CharField(max_length=40, verbose_name="Họ và Tên")
     gender = models.CharField(max_length=1, verbose_name="Giới tính") 
     birth_day = models.DateField(verbose_name="Ngày sinh")
-    email = models.EmailField(max_length=40, unique=True, verbose_name="Email")
+    email = models.EmailField(max_length=40,  verbose_name="Email")
     sdt = models.CharField(max_length=15, verbose_name="Số điện thoại")
     address = models.CharField(max_length=30, verbose_name="Địa chỉ")
 
@@ -52,16 +67,34 @@ class hoc_vien(models.Model):
         verbose_name = "Học Viên"
         verbose_name_plural = "Học Viên"
         db_table = 'hoc_vien'
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(gender__in=['M', 'F']),
+                name='hoc_vien_gender_valid'
+            ),
+        ]
+
+class class_type(models.Model):
+    type_id = models.AutoField(primary_key=True, verbose_name="Mã loại lớp")
+    describe = models.TextField(verbose_name="Mô tả")
+    code = models.CharField(max_length=1, unique=True, verbose_name="Mã code")  # Ví dụ: 'O', 'M', ...
+
+    def __str__(self):
+        return f"{self.code} - {self.describe}"
+
+    class Meta:
+        db_table = 'class_type'
+
 
 class clazz(models.Model):
-    class_id = models.CharField(max_length=8, primary_key=True, verbose_name="Mã Lớp học")
-    nhan_vien = models.ForeignKey(nhan_vien, on_delete=models.SET_NULL, null=True, blank=True, db_column='MaNV', verbose_name="Nhân viên quản lý")
-    teacher = models.ForeignKey(teacher, on_delete=models.SET_NULL, null=True, blank=True, db_column='teacher_id', verbose_name="Giáo viên")
+    class_id = models.AutoField(primary_key=True, verbose_name="Mã Lớp học")
+    nhan_vien = models.ForeignKey(nhan_vien, on_delete=models.PROTECT, db_column='nv_id', verbose_name="Nhân viên quản lý")
+    teacher = models.ForeignKey(teacher, on_delete=models.PROTECT, db_column='teacher_id', verbose_name="Giáo viên")
+    type = models.ForeignKey(class_type, on_delete=models.PROTECT, db_column='type_id', verbose_name="Loại lớp")
     class_name = models.CharField(max_length=40, verbose_name="Tên lớp học")
-    class_type = models.CharField(max_length=1, verbose_name="Loại lớp") 
     room = models.CharField(max_length=15, verbose_name="Phòng học")
-    khai_giang_date = models.DateField(verbose_name="Ngày khai giảng")
-    ket_thuc_date = models.DateField(verbose_name="Ngày kết thúc")
+    khai_giang = models.DateField(verbose_name="Ngày khai giảng")
+    ket_thuc = models.DateField(verbose_name="Ngày kết thúc")
     si_so = models.IntegerField(verbose_name="Sĩ số tối đa")
     price = models.IntegerField(verbose_name="Học phí")
 
@@ -73,8 +106,9 @@ class clazz(models.Model):
         verbose_name_plural = "Lớp Học"
         db_table = 'clazz'
 
+
 class schedule(models.Model):
-    id_schedule = models.CharField(max_length=8, primary_key=True, verbose_name="Mã Lịch học")
+    id_schedule = models.AutoField(primary_key=True, verbose_name="Mã Lịch học")
     class_obj = models.ForeignKey(clazz, on_delete=models.CASCADE, db_column='class_id', related_name='schedules', verbose_name="Lớp học")
     day = models.CharField(max_length=20, verbose_name="Ngày trong tuần/Buổi học") # Ví dụ: "Thứ 2", "Buổi 1" hoặc một ngày cụ thể
     start_time = models.TimeField(verbose_name="Thời gian bắt đầu")
@@ -108,13 +142,21 @@ class enrollments(models.Model):
         verbose_name_plural = "Đăng Ký Học"
         db_table = 'enrollments'
         unique_together = (('student', 'class_obj'),)  # Composite primary key
+        constraints = [
+            models.CheckConstraint(check=(models.Q(minitest1__gte=0, minitest1__lte=10) | models.Q(minitest1__isnull=True)),name='minitest1_in_range'),
+            models.CheckConstraint(check=(models.Q(minitest2__gte=0, minitest2__lte=10) |models.Q(minitest2__isnull=True)),name='minitest2_in_range'),
+            models.CheckConstraint(check=(models.Q(minitest3__gte=0, minitest3__lte=10) |models.Q(minitest3__isnull=True)),name='minitest3_in_range'),
+            models.CheckConstraint(check=(models.Q(minitest4__gte=0, minitest4__lte=10) |models.Q(minitest4__isnull=True)),name='minitest4_in_range'),
+            models.CheckConstraint(check=(models.Q(midterm__gte=0, midterm__lte=10) |models.Q(midterm__isnull=True)),name='midterm_in_range'),
+            models.CheckConstraint(check=(models.Q(final__gte=0, final__lte=10) |models.Q(final__isnull=True)),name='final_in_range'),
+        ]
 
 class attendance(models.Model):
-    id_attend = models.CharField(max_length=8, primary_key=True, verbose_name="Mã Điểm danh")
+    id_attend = models.AutoField(primary_key=True, verbose_name="Mã Điểm danh")
     student = models.ForeignKey(hoc_vien, on_delete=models.CASCADE, db_column='student_id', verbose_name="Học viên")
     class_obj = models.ForeignKey(clazz, on_delete=models.CASCADE, db_column='class_id', verbose_name="Lớp học")
     attendance_date = models.DateField(verbose_name="Ngày điểm danh")
-    status = models.CharField(max_length=15, verbose_name="Trạng thái") # Ví dụ: 'Có mặt', 'Vắng'
+    status = models.CharField(max_length=15, verbose_name="Trạng thái") 
 
     def __str__(self):
         return f"Điểm danh {self.student.full_name} - Lớp {self.class_obj.class_name} - Ngày {self.attendance_date}"
@@ -123,14 +165,20 @@ class attendance(models.Model):
         verbose_name = "Điểm Danh"
         verbose_name_plural = "Điểm Danh"
         db_table = 'attendance'
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(status__in=['Absent', 'Present']),
+                name='status_valid'
+            ),
+        ]
 
 class feedback(models.Model):
-    id_feedback = models.CharField(max_length=8, primary_key=True, verbose_name="Mã Feedback")
-    student = models.ForeignKey(hoc_vien, on_delete=models.CASCADE, db_column='student_id', verbose_name="Học viên")
-    class_obj = models.ForeignKey(clazz, on_delete=models.CASCADE, db_column='class_id', verbose_name="Lớp học")
-    teacher = models.ForeignKey(teacher, on_delete=models.SET_NULL, null=True, blank=True, db_column='teacher_id', verbose_name="Giáo viên")
-    class_rate = models.FloatField(null=True, blank=True, verbose_name="Đánh giá lớp học") # Ví dụ: thang điểm 1-5
-    teacher_rate = models.FloatField(null=True, blank=True, verbose_name="Đánh giá giáo viên") # Ví dụ: thang điểm 1-5
+    id_feedback = models.AutoField(primary_key=True, verbose_name="Mã Feedback")
+    student = models.ForeignKey(hoc_vien, on_delete=models.PROTECT, db_column='student_id', verbose_name="Học viên")
+    class_obj = models.ForeignKey(clazz, on_delete=models.PROTECT, db_column='class_id', verbose_name="Lớp học")
+    teacher = models.ForeignKey(teacher, on_delete=models.PROTECT, db_column='teacher_id', verbose_name="Giáo viên")
+    class_rate = models.FloatField(null=True, blank=True, verbose_name="Đánh giá lớp học") # Ví dụ: thang điểm 1-10
+    teacher_rate = models.FloatField(null=True, blank=True, verbose_name="Đánh giá giáo viên") # Ví dụ: thang điểm 1-10
  
     def __str__(self):
         return f"Feedback {self.id_feedback} từ {self.student.full_name} cho lớp {self.class_obj.class_name}"
@@ -139,3 +187,20 @@ class feedback(models.Model):
         verbose_name = "Feedback"
         verbose_name_plural = "Feedback"
         db_table = 'feedback'
+        constraints = [
+            models.CheckConstraint(
+                check=(
+                    models.Q(class_rate__gte=0, class_rate__lte=10) |
+                    models.Q(class_rate__isnull=True)
+                ),
+                name='class_rate_in_range'
+            ),
+            models.CheckConstraint(
+                check=(
+                    models.Q(teacher_rate__gte=0, teacher_rate__lte=10) |
+                    models.Q(teacher_rate__isnull=True)
+                ),
+                name='teacher_rate_in_range'
+            ),
+        ]
+        

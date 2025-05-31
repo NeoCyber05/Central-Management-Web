@@ -1,0 +1,22 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h4>Xác nhận xóa lớp học</h4>
+                </div>
+                <div class="card-body">
+                    <p>Bạn có chắc chắn muốn xóa lớp <strong>{{ class_obj.class_name }} ({{ class_obj.class_id }})</strong> không?</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Xóa</button>
+                        <a href="{% url 'core:class_list' %}" class="btn btn-secondary">Hủy</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
