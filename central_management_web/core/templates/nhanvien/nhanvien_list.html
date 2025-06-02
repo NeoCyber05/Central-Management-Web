@@ -1,0 +1,55 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Quản lý nhân viên{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Danh sách nhân viên</h2>
+        <a href="{% url 'core:nhanvien_create' %}" class="btn btn-primary">+ Thêm nhân viên</a>
+    </div>
+    <div class="card shadow border-primary">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Mã NV</th>
+                        <th>Họ tên</th>
+                        <th>Giới tính</th>
+                        <th>Ngày sinh</th>
+                        <th>Email</th>
+                        <th>SĐT</th>
+                        <th>Địa chỉ</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for nv in nhanviens %}
+                    <tr>
+                        <td>{{ nv.nv_id }}</td>
+                        <td>{{ nv.full_name }}</td>
+                        <td>
+                            {% if nv.gender == "F" %}
+                                Nữ
+                            {% elif nv.gender == "M" %}
+                                Nam
+                            {% endif %}
+                        </td>
+                        <td>{{ nv.birth_day }}</td>
+                        <td>{{ nv.email }}</td>
+                        <td>{{ nv.sdt }}</td>
+                        <td>{{ nv.address }}</td>
+                        <td>
+                            <a href="{% url 'core:nhanvien_edit' nv.nv_id %}" class="btn btn-sm btn-warning">Sửa</a>
+                            <a href="{% url 'core:nhanvien_delete' nv.nv_id %}" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa nhân viên này?');">Xóa</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="8" class="text-center">Chưa có nhân viên nào.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %} 

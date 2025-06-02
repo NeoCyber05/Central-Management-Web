@@ -37,10 +37,10 @@ urlpatterns = [
     path('teachers/<int:pk>/delete/', views.teacher_delete, name='teacher_delete'),
 
     # Nhan Vien Management
-    path('nhanviens/', views.nhanvien_list, name='nhanvien_list'),
-    path('nhanviens/create/', views.nhanvien_create, name='nhanvien_create'),
-    path('nhanviens/<int:pk>/edit/', views.nhanvien_edit, name='nhanvien_edit'),
-    path('nhanviens/<int:pk>/delete/', views.nhanvien_delete, name='nhanvien_delete'),
+    path('nhanvien/', views.nhanvien_list, name='nhanvien_list'),
+    path('nhanvien/create/', views.nhanvien_create, name='nhanvien_create'),
+    path('nhanvien/<int:pk>/edit/', views.nhanvien_edit, name='nhanvien_edit'),
+    path('nhanvien/<int:pk>/delete/', views.nhanvien_delete, name='nhanvien_delete'),
 
     # Class Management
     path('classes/', views.class_list, name='class_list'),
@@ -65,4 +65,10 @@ urlpatterns = [
     path('feedback/', views.feedback_list, name='feedback_list'),
     path('feedback/<int:pk>/view/', views.feedback_view, name='feedback_view'),
     path('feedback/<int:pk>/delete/', views.feedback_delete, name='feedback_delete'),
+
+    # Class Type Management
+    path('class-types/', views.class_type_list, name='class_type_list'),
+    path('class-types/create/', views.class_type_create, name='class_type_create'),
+    path('class-types/<int:pk>/edit/', views.class_type_edit, name='class_type_edit'),
+    path('class-types/<int:pk>/delete/', views.class_type_delete, name='class_type_delete'),
 ]

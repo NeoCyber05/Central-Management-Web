@@ -1,6 +1,6 @@
 {% extends 'core/base.html' %}
 
-{% block title %}{{ action }} giáo viên{% endblock %}
+{% block title %}{{ action }} học viên{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -8,7 +8,7 @@
         <div class="col-md-8">
             <div class="card shadow border-primary">
                 <div class="card-header bg-primary text-white">
-                    <h3 class="card-title mb-0">{{ action }} giáo viên</h3>
+                    <h3 class="card-title mb-0">{{ action }} học viên</h3>
                 </div>
                 <div class="card-body">
                     <form method="post">
@@ -27,7 +27,7 @@
                         </div>
                         {% endfor %}
                         <div class="d-flex justify-content-end gap-2">
-                            <a href="{% url 'core:teacher_list' %}" class="btn btn-secondary">Hủy</a>
+                            <a href="{% url 'core:student_list' %}" class="btn btn-secondary">Hủy</a>
                             <button type="submit" class="btn btn-primary">Lưu</button>
                         </div>
                     </form>
@@ -36,4 +36,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
+{% endblock %} 

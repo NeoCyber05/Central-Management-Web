@@ -3,13 +3,13 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User, Group
 from django.db.models import Count, Sum, Avg, Q
-from .models import nhan_vien, teacher, hoc_vien, clazz, schedule, enrollments, attendance, feedback
+from .models import nhan_vien, teacher, hoc_vien, clazz, schedule, enrollments, attendance, feedback, class_type
 from django.contrib import messages
 from django.utils import timezone
 from datetime import datetime, timedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import teacher
-from .forms import TeacherForm, HocVienForm, ClassForm, NhanVienForm
+from .forms import TeacherForm, HocVienForm, ClassForm, NhanVienForm, ClassTypeForm
 
 
 def is_admin(user):
@@ -114,7 +114,7 @@ def user_delete(request, pk):
 @login_required
 def student_list(request):
     students = hoc_vien.objects.all()
-    return render(request, 'core/student_list.html', {'students': students})
+    return render(request, 'students/student_list.html', {'students': students})
 
 @login_required
 def student_create(request):
@@ -122,6 +122,7 @@ def student_create(request):
         form = HocVienForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Thêm học viên thành công!')
             return redirect('core:student_list')
     else:
         form = HocVienForm()
@@ -134,6 +135,7 @@ def student_edit(request, pk):
         form = HocVienForm(request.POST, instance=student)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Cập nhật học viên thành công!')
             return redirect('core:student_list')
     else:
         form = HocVienForm(instance=student)
@@ -144,6 +146,7 @@ def student_delete(request, pk):
     student = get_object_or_404(hoc_vien, pk=pk)
     if request.method == 'POST':
         student.delete()
+        messages.success(request, 'Xóa học viên thành công!')
         return redirect('core:student_list')
     return render(request, 'students/student_confirm_delete.html', {'student': student})
 
@@ -220,17 +223,41 @@ def class_delete(request, pk):
         class_obj.delete()
         return redirect('core:class_list')
     return render(request, 'classes/class_confirm_delete.html', {'class_obj': class_obj})
+
+@login_required
 def class_detail(request, pk):
     class_obj = get_object_or_404(clazz, pk=pk)
     enrolls = enrollments.objects.filter(class_obj=class_obj)
     students = hoc_vien.objects.exclude(enrollments__class_obj=class_obj)
+
     if request.method == 'POST':
-        student_id = request.POST.get('student_id')
-        if student_id:
-            student = hoc_vien.objects.get(student_id=student_id)
-            enrollments.objects.create(student=student, class_obj=class_obj, enrollment_date=timezone.now())
-            return redirect('core:class_detail', pk=pk)
-    return render(request, 'core/class_detail.html', {
+        # Xử lý thêm học viên
+        if 'student_id' in request.POST:
+            student_id = request.POST.get('student_id')
+            if student_id:
+                student = get_object_or_404(hoc_vien, pk=student_id)
+                # Kiểm tra sĩ số
+                if enrolls.count() < class_obj.si_so:
+                    enrollments.objects.create(
+                        student=student,
+                        class_obj=class_obj,
+                        enrollment_date=timezone.now()
+                    )
+                    messages.success(request, 'Thêm học viên vào lớp thành công!')
+                else:
+                    messages.error(request, 'Lớp đã đủ sĩ số!')
+        
+        # Xử lý xóa học viên
+        elif 'remove_student' in request.POST:
+            student_id = request.POST.get('remove_student')
+            if student_id:
+                enrollment = get_object_or_404(enrollments, student_id=student_id, class_obj=class_obj)
+                enrollment.delete()
+                messages.success(request, 'Xóa học viên khỏi lớp thành công!')
+
+        return redirect('core:class_detail', pk=pk)
+
+    return render(request, 'classes/class_detail.html', {
         'class_obj': class_obj,
         'enrolls': enrolls,
         'students': students
@@ -324,7 +351,7 @@ def feedback_delete(request, pk):
 @login_required
 def nhanvien_list(request):
     nhanviens = nhan_vien.objects.all()
-    return render(request, 'core/nhanvien_list.html', {'nhanviens': nhanviens})
+    return render(request, 'nhanvien/nhanvien_list.html', {'nhanviens': nhanviens})
 
 @login_required
 def nhanvien_create(request):
@@ -332,10 +359,11 @@ def nhanvien_create(request):
         form = NhanVienForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Thêm nhân viên thành công!')
             return redirect('core:nhanvien_list')
     else:
         form = NhanVienForm()
-    return render(request, 'core/nhanvien_form.html', {'form': form, 'action': 'Thêm'})
+    return render(request, 'nhanvien/nhanvien_form.html', {'form': form, 'action': 'Thêm'})
 
 @login_required
 def nhanvien_edit(request, pk):
@@ -344,15 +372,59 @@ def nhanvien_edit(request, pk):
         form = NhanVienForm(request.POST, instance=nv)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Cập nhật nhân viên thành công!')
             return redirect('core:nhanvien_list')
     else:
         form = NhanVienForm(instance=nv)
-    return render(request, 'core/nhanvien_form.html', {'form': form, 'action': 'Sửa'})
+    return render(request, 'nhanvien/nhanvien_form.html', {'form': form, 'action': 'Sửa'})
 
 @login_required
 def nhanvien_delete(request, pk):
     nv = get_object_or_404(nhan_vien, pk=pk)
     if request.method == 'POST':
         nv.delete()
+        messages.success(request, 'Xóa nhân viên thành công!')
         return redirect('core:nhanvien_list')
-    return render(request, 'core/nhanvien_confirm_delete.html', {'nhanvien': nv})
+    return render(request, 'nhanvien/nhanvien_confirm_delete.html', {'nhanvien': nv})
+
+#-------------------------------
+# Class Type Management Views
+#-------------------------------
+@login_required
+def class_type_list(request):
+    types = class_type.objects.all()
+    return render(request, 'class_type/class_type_list.html', {'types': types})
+
+@login_required
+def class_type_create(request):
+    if request.method == 'POST':
+        form = ClassTypeForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Thêm loại lớp thành công!')
+            return redirect('core:class_type_list')
+    else:
+        form = ClassTypeForm()
+    return render(request, 'class_type/class_type_form.html', {'form': form, 'action': 'Thêm'})
+
+@login_required
+def class_type_edit(request, pk):
+    ct = get_object_or_404(class_type, pk=pk)
+    if request.method == 'POST':
+        form = ClassTypeForm(request.POST, instance=ct)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Cập nhật loại lớp thành công!')
+            return redirect('core:class_type_list')
+    else:
+        form = ClassTypeForm(instance=ct)
+    return render(request, 'class_type/class_type_form.html', {'form': form, 'action': 'Sửa'})
+
+@login_required
+def class_type_delete(request, pk):
+    ct = get_object_or_404(class_type, pk=pk)
+    if request.method == 'POST':
+        ct.delete()
+        messages.success(request, 'Xóa loại lớp thành công!')
+        return redirect('core:class_type_list')
+    return render(request, 'class_type/class_type_confirm_delete.html', {'class_type': ct})

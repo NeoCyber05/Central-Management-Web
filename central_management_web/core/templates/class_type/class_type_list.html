@@ -1,0 +1,39 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Quản lý loại lớp{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Danh sách loại lớp</h2>
+        <a href="{% url 'core:class_type_create' %}" class="btn btn-primary">+ Thêm loại lớp</a>
+    </div>
+    <div class="card shadow border-primary">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Mã code</th>
+                        <th>Mô tả</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for ct in types %}
+                    <tr>
+                        <td>{{ ct.code }}</td>
+                        <td>{{ ct.describe }}</td>
+                        <td>
+                            <a href="{% url 'core:class_type_edit' ct.type_id %}" class="btn btn-sm btn-warning">Sửa</a>
+                            <a href="{% url 'core:class_type_delete' ct.type_id %}" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa loại lớp này?');">Xóa</a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="3" class="text-center">Chưa có loại lớp nào.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %} 
