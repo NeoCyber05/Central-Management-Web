@@ -240,7 +240,7 @@ def class_detail(request, pk):
             if student_id:
                 student = get_object_or_404(hoc_vien, pk=student_id)
                 # Kiểm tra sĩ số
-                if enrolls.count() < class_obj.si_so:
+                if enrolls.count() < 30:
                     enrollments.objects.create(
                         student=student,
                         class_obj=class_obj,
