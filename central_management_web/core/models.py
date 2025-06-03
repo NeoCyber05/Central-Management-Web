@@ -95,7 +95,7 @@ class clazz(models.Model):
     room = models.CharField(max_length=15, verbose_name="Phòng học")
     khai_giang = models.DateField(verbose_name="Ngày khai giảng")
     ket_thuc = models.DateField(verbose_name="Ngày kết thúc")
-    si_so = models.IntegerField(verbose_name="Sĩ số tối đa")
+    si_so = models.IntegerField(verbose_name="Sĩ số hiện tại", default=0)
     price = models.IntegerField(verbose_name="Học phí")
 
     def __str__(self):

@@ -23,11 +23,18 @@ class HocVienForm(forms.ModelForm):
 class ClassForm(forms.ModelForm):
     class Meta:
         model = clazz
-        fields = ['class_name', 'nhan_vien', 'teacher', 'type', 'room', 'khai_giang', 'ket_thuc', 'si_so', 'price']
+        fields = ['class_name', 'nhan_vien', 'teacher', 'type', 'room', 'khai_giang', 'ket_thuc', 'price']
         widgets = {
-            'khai_giang': forms.DateInput(attrs={'type': 'date'}),
-            'ket_thuc': forms.DateInput(attrs={'type': 'date'})
+            'nhan_vien': forms.Select(attrs={'class': 'select2'}),
+            'teacher': forms.Select(attrs={'class': 'select2'}),
+            'khai_giang': forms.DateInput(attrs={'type': 'date', 'placeholder': 'yyyy-mm-dd'}),
+            'ket_thuc': forms.DateInput(attrs={'type': 'date', 'placeholder': 'yyyy-mm-dd'})
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['khai_giang'].input_formats = ['%Y-%m-%d']
+        self.fields['ket_thuc'].input_formats = ['%Y-%m-%d']
 
 class NhanVienForm(forms.ModelForm):
     class Meta:

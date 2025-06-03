@@ -195,13 +195,16 @@ def class_list(request):
 
 @login_required
 def class_create(request):
+    print("POST DATA:", request.POST)
     if request.method == 'POST':
-        form = ClassForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('core:class_list')
+           form = ClassForm(request.POST)
+           if form.is_valid():
+               form.save()
+               messages.success(request, 'Thêm lớp học thành công!')
+               return redirect('core:class_list')
+           # Nếu form không hợp lệ, sẽ render lại form với lỗi
     else:
-        form = ClassForm()
+           form = ClassForm()
     return render(request, 'core/class_form.html', {'form': form, 'action': 'Thêm'})
 
 @login_required

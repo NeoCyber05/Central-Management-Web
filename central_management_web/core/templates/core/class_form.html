@@ -1,4 +1,18 @@
 {% extends 'core/base.html' %}
+{% if form.errors %}
+<div class="alert alert-danger">
+    <ul>
+    {% for field in form %}
+        {% for error in field.errors %}
+            <li>{{ field.label }}: {{ error }}</li>
+        {% endfor %}
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+    {% endfor %}
+    </ul>
+</div>
+{% endif %}
 {% block content %}
 <div class="container mt-4">
     <div class="row justify-content-center">
@@ -62,4 +76,21 @@
 
 {% comment %}
 Nếu muốn đẹp hơn nữa, có thể custom widget trong form Python hoặc dùng crispy-forms.
-{% endcomment %} 
+{% endcomment %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(document).ready(function() {
+    $('.select2').select2({
+        width: '100%',
+        placeholder: 'Chọn hoặc tìm kiếm...',
+        allowClear: true
+    });
+});
+</script>
+{% endblock %} 
