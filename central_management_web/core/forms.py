@@ -1,5 +1,6 @@
 from django import forms
-from .models import teacher, hoc_vien, clazz, nhan_vien, class_type
+from .models import teacher, hoc_vien, clazz, nhan_vien, class_type, schedule
+from datetime import datetime, date
 
 class TeacherForm(forms.ModelForm):
     class Meta:
@@ -49,3 +50,69 @@ class ClassTypeForm(forms.ModelForm):
     class Meta:
         model = class_type
         fields = ['describe', 'code']
+
+class ScheduleForm(forms.ModelForm):
+    # Override trường day để có thể hiển thị checkbox
+    day = forms.MultipleChoiceField(
+        choices=[
+            ('2', 'Thứ 2'),
+            ('3', 'Thứ 3'),
+            ('4', 'Thứ 4'),
+            ('5', 'Thứ 5'),
+            ('6', 'Thứ 6'),
+            ('7', 'Thứ 7'),
+            ('CN', 'Chủ nhật'),
+        ],
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
+        label="Chọn ngày trong tuần",
+        required=True
+    )
+    
+    class Meta:
+        model = schedule
+        fields = ['day', 'start_time', 'end_time']
+        widgets = {
+            'start_time': forms.TimeInput(attrs={
+                'type': 'time', 
+                'class': 'form-control',
+                'step': '60',
+                'data-time-format': '24',
+                'pattern': '[0-9]{2}:[0-9]{2}'
+            }),
+            'end_time': forms.TimeInput(attrs={
+                'type': 'time', 
+                'class': 'form-control',
+                'step': '60',
+                'data-time-format': '24',
+                'pattern': '[0-9]{2}:[0-9]{2}'
+            }),
+        }
+
+    def clean_day(self):
+        day = self.cleaned_data.get('day')
+        if not day:
+            raise forms.ValidationError("Vui lòng chọn ít nhất một ngày trong tuần.")
+        if len(day) != 3:
+            raise forms.ValidationError("Vui lòng chọn đúng 3 ngày trong tuần.")
+        return day
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start_time = cleaned_data.get('start_time')
+        end_time = cleaned_data.get('end_time')
+        
+        if start_time and end_time:
+            # Chuyển đổi thành datetime để tính toán
+            start_dt = datetime.combine(date.min, start_time)
+            end_dt = datetime.combine(date.min, end_time)
+            
+            # Tính khoảng cách thời gian (giờ)
+            delta_hours = (end_dt - start_dt).total_seconds() / 3600
+            
+            if delta_hours != 2:
+                raise forms.ValidationError("Thời gian kết thúc phải cách thời gian bắt đầu đúng 2 tiếng.")
+            
+            if end_time <= start_time:
+                raise forms.ValidationError("Thời gian kết thúc phải sau thời gian bắt đầu.")
+        
+        return cleaned_data

@@ -28,8 +28,23 @@
                     <p><strong>Phòng học:</strong> {{ class_obj.room }}</p>
                     <p><strong>Ngày khai giảng:</strong> {{ class_obj.khai_giang }}</p>
                     <p><strong>Ngày kết thúc:</strong> {{ class_obj.ket_thuc }}</p>
-                    <p><strong>Sĩ số hiện tại:</strong> {{ enrolls.count }}/{{ class_obj.si_so }}</p>
+                    <p><strong>Sĩ số hiện tại:</strong> {{ enrolls.count }}</p>
                     <p><strong>Học phí:</strong> {{ class_obj.price }} VNĐ</p>
+                    
+                    <!-- Hiển thị lịch học hiện tại -->
+                    {% if current_schedule %}
+                    <hr>
+                    <h6><strong>Lịch học:</strong></h6>
+                    <p><strong>Thứ:</strong> 
+                        {% for day in current_schedule.day %}
+                            {% if day == '2' %}Thứ 2{% elif day == '3' %}Thứ 3{% elif day == '4' %}Thứ 4{% elif day == '5' %}Thứ 5{% elif day == '6' %}Thứ 6{% elif day == '7' %}Thứ 7{% elif day == 'CN' %}Chủ nhật{% endif %}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </p>
+                    <p><strong>Giờ học:</strong> {{ current_schedule.start_time }} - {{ current_schedule.end_time }}</p>
+                    {% else %}
+                    <hr>
+                    <p class="text-muted"><em>Chưa có lịch học</em></p>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -81,6 +96,84 @@
             </div>
         </div>
     </div>
+    
+    <!-- Form thêm/cập nhật lịch học -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5>{% if current_schedule %}Cập nhật{% else %}Thêm{% endif %} lịch học</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label"><strong>Chọn ngày trong tuần (đúng 3 ngày):</strong></label>
+                                    <div class="row">
+                                        {% for choice in schedule_form.day %}
+                                        <div class="col-md-6 mb-2">
+                                            <div class="form-check">
+                                                {{ choice.tag }}
+                                                <label class="form-check-label" for="{{ choice.id_for_label }}">
+                                                    {{ choice.choice_label }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% if schedule_form.day.errors %}
+                                        <div class="text-danger">
+                                            {% for error in schedule_form.day.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="{{ schedule_form.start_time.id_for_label }}" class="form-label">Giờ bắt đầu:</label>
+                                    {{ schedule_form.start_time }}
+                                    {% if schedule_form.start_time.errors %}
+                                        <div class="text-danger">
+                                            {% for error in schedule_form.start_time.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="mb-3">
+                                    <label for="{{ schedule_form.end_time.id_for_label }}" class="form-label">Giờ kết thúc:</label>
+                                    {{ schedule_form.end_time }}
+                                    {% if schedule_form.end_time.errors %}
+                                        <div class="text-danger">
+                                            {% for error in schedule_form.end_time.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% if schedule_form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {% for error in schedule_form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <button type="submit" name="add_schedule" class="btn btn-info">
+                            {% if current_schedule %}Cập nhật lịch học{% else %}Thêm lịch học{% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Modal thêm học viên -->
@@ -116,6 +209,50 @@
 
 {% block extra_css %}
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    /* Sửa căn chỉnh checkbox */
+    .form-check {
+        padding-left: 1.5em;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-check-input {
+        margin-left: -1.5em;
+        margin-top: 0.25em;
+    }
+    
+    .form-check-label {
+        margin-left: 0;
+        padding-left: 0.5em;
+    }
+    
+    /* Force 24h format cho time input */
+    input[type="time"] {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+    
+    input[type="time"]:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+    
+    /* Ẩn AM/PM trong time picker */
+    input[type="time"]::-webkit-datetime-edit-ampm-field {
+        display: none;
+    }
+    
+    input[type="time"]::-webkit-inner-spin-button {
+        display: none;
+    }
+    
+    input[type="time"]::-webkit-calendar-picker-indicator {
+        opacity: 0.8;
+    }
+</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -127,6 +264,32 @@ $(document).ready(function() {
         width: '100%',
         placeholder: 'Chọn hoặc tìm kiếm học viên...',
         allowClear: true
+    });
+    
+    // Force 24h format cho time inputs
+    $('input[type="time"]').each(function() {
+        // Set locale để đảm bảo 24h format
+        this.setAttribute('step', '60');
+        
+        // Kiểm tra browser support 24h
+        if (this.type === 'time') {
+            // Đảm bảo không có AM/PM
+            $(this).on('input change', function() {
+                let value = this.value;
+                if (value) {
+                    // Format lại về 24h nếu cần
+                    let parts = value.split(':');
+                    if (parts.length === 2) {
+                        let hours = parseInt(parts[0]);
+                        let minutes = parts[1];
+                        
+                        // Đảm bảo format HH:MM
+                        if (hours < 10) hours = '0' + hours;
+                        this.value = hours + ':' + minutes;
+                    }
+                }
+            });
+        }
     });
 });
 </script>

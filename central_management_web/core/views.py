@@ -9,7 +9,7 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import teacher
-from .forms import TeacherForm, HocVienForm, ClassForm, NhanVienForm, ClassTypeForm
+from .forms import TeacherForm, HocVienForm, ClassForm, NhanVienForm, ClassTypeForm, ScheduleForm
 
 
 def is_admin(user):
@@ -233,6 +233,12 @@ def class_detail(request, pk):
     enrolls = enrollments.objects.filter(class_obj=class_obj)
     students = hoc_vien.objects.exclude(enrollments__class_obj=class_obj)
 
+    # Lấy lịch học hiện tại (nếu có)
+    try:
+        current_schedule = class_obj.schedule
+    except:
+        current_schedule = None
+
     if request.method == 'POST':
         # Xử lý thêm học viên
         if 'student_id' in request.POST:
@@ -240,7 +246,7 @@ def class_detail(request, pk):
             if student_id:
                 student = get_object_or_404(hoc_vien, pk=student_id)
                 # Kiểm tra sĩ số
-                if enrolls.count() < 30:
+                if enrolls.count() < 30:  # Hoặc class_obj.si_so_toi_da nếu có
                     enrollments.objects.create(
                         student=student,
                         class_obj=class_obj,
@@ -258,12 +264,36 @@ def class_detail(request, pk):
                 enrollment.delete()
                 messages.success(request, 'Xóa học viên khỏi lớp thành công!')
 
+        # Xử lý thêm/cập nhật lịch học
+        elif 'add_schedule' in request.POST:
+            if current_schedule:
+                schedule_form = ScheduleForm(request.POST, instance=current_schedule)
+            else:
+                schedule_form = ScheduleForm(request.POST)
+            
+            if schedule_form.is_valid():
+                schedule_obj = schedule_form.save(commit=False)
+                schedule_obj.class_obj = class_obj
+                schedule_obj.save()
+                messages.success(request, 'Cập nhật lịch học thành công!')
+                return redirect('core:class_detail', pk=pk)
+            else:
+                messages.error(request, 'Có lỗi khi thêm lịch học. Vui lòng kiểm tra lại!')
+        
         return redirect('core:class_detail', pk=pk)
+    
+    # Tạo form lịch học
+    if current_schedule:
+        schedule_form = ScheduleForm(instance=current_schedule)
+    else:
+        schedule_form = ScheduleForm()
 
     return render(request, 'classes/class_detail.html', {
         'class_obj': class_obj,
         'enrolls': enrolls,
-        'students': students
+        'students': students,
+        'current_schedule': current_schedule,
+        'schedule_form': schedule_form,
     })
 
 #-------------------------------

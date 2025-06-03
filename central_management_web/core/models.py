@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
 
 class nhan_vien(models.Model):
     nv_id = models.AutoField(primary_key=True, verbose_name="Mã Nhân Viên")
@@ -107,10 +108,24 @@ class clazz(models.Model):
         db_table = 'clazz'
 
 
+DAY_CHOICES = [
+    ('2', 'Thứ 2'),
+    ('3', 'Thứ 3'),
+    ('4', 'Thứ 4'),
+    ('5', 'Thứ 5'),
+    ('6', 'Thứ 6'),
+    ('7', 'Thứ 7'),
+    ('CN', 'Chủ nhật'),
+]
+
 class schedule(models.Model):
     id_schedule = models.AutoField(primary_key=True, verbose_name="Mã Lịch học")
-    class_obj = models.ForeignKey(clazz, on_delete=models.CASCADE, db_column='class_id', related_name='schedules', verbose_name="Lớp học")
-    day = models.CharField(max_length=20, verbose_name="Ngày trong tuần/Buổi học") # Ví dụ: "Thứ 2", "Buổi 1" hoặc một ngày cụ thể
+    class_obj = models.OneToOneField(clazz, on_delete=models.CASCADE, db_column='class_id', related_name='schedule', verbose_name="Lớp học")
+    day = ArrayField(
+        models.CharField(max_length=2, choices=DAY_CHOICES),
+        size=3,  # Chỉ cho phép đúng 3 phần tử
+        verbose_name="Các ngày trong tuần"
+    )
     start_time = models.TimeField(verbose_name="Thời gian bắt đầu")
     end_time = models.TimeField(verbose_name="Thời gian kết thúc")
 
