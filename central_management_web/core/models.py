@@ -4,7 +4,7 @@ from django.contrib.postgres.fields import ArrayField
 class nhan_vien(models.Model):
     nv_id = models.AutoField(primary_key=True, verbose_name="Mã Nhân Viên")
     full_name = models.CharField(max_length=40, verbose_name="Họ và Tên")
-    gender = models.CharField(max_length=1, verbose_name="Giới tính") # ví dụ: ('M', 'Nam'), ('F', 'Nữ')
+    gender = models.CharField(max_length=1, verbose_name="Giới tính")
     birth_day = models.DateField(verbose_name="Ngày sinh")
     email = models.EmailField(max_length=40, verbose_name="Email")
     sdt = models.CharField(max_length=15, verbose_name="Số điện thoại")
@@ -192,8 +192,8 @@ class feedback(models.Model):
     student = models.ForeignKey(hoc_vien, on_delete=models.PROTECT, db_column='student_id', verbose_name="Học viên")
     class_obj = models.ForeignKey(clazz, on_delete=models.PROTECT, db_column='class_id', verbose_name="Lớp học")
     teacher = models.ForeignKey(teacher, on_delete=models.PROTECT, db_column='teacher_id', verbose_name="Giáo viên")
-    class_rate = models.FloatField(null=True, blank=True, verbose_name="Đánh giá lớp học") # Ví dụ: thang điểm 1-10
-    teacher_rate = models.FloatField(null=True, blank=True, verbose_name="Đánh giá giáo viên") # Ví dụ: thang điểm 1-10
+    class_rate = models.DecimalField(null=True, blank=True, max_digits=4, decimal_places=2, verbose_name="Đánh giá lớp học") # Thang điểm 1-10
+    teacher_rate = models.DecimalField(null=True, blank=True, max_digits=4, decimal_places=2, verbose_name="Đánh giá giáo viên") # Thang điểm 1-10
  
     def __str__(self):
         return f"Feedback {self.id_feedback} từ {self.student.full_name} cho lớp {self.class_obj.class_name}"
@@ -205,14 +205,14 @@ class feedback(models.Model):
         constraints = [
             models.CheckConstraint(
                 check=(
-                    models.Q(class_rate__gte=0, class_rate__lte=10) |
+                    models.Q(class_rate__gte=1, class_rate__lte=10) |
                     models.Q(class_rate__isnull=True)
                 ),
                 name='class_rate_in_range'
             ),
             models.CheckConstraint(
                 check=(
-                    models.Q(teacher_rate__gte=0, teacher_rate__lte=10) |
+                    models.Q(teacher_rate__gte=1, teacher_rate__lte=10) |
                     models.Q(teacher_rate__isnull=True)
                 ),
                 name='teacher_rate_in_range'

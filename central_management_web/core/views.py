@@ -264,6 +264,21 @@ def class_detail(request, pk):
                 enrollment.delete()
                 messages.success(request, 'Xóa học viên khỏi lớp thành công!')
 
+        # Xử lý cập nhật điểm số
+        elif 'update_scores' in request.POST:
+            student_id = request.POST.get('update_scores')
+            if student_id:
+                enrollment = get_object_or_404(enrollments, student_id=student_id, class_obj=class_obj)
+                # Cập nhật điểm số
+                enrollment.minitest1 = request.POST.get('minitest1') or None
+                enrollment.minitest2 = request.POST.get('minitest2') or None
+                enrollment.minitest3 = request.POST.get('minitest3') or None
+                enrollment.minitest4 = request.POST.get('minitest4') or None
+                enrollment.midterm = request.POST.get('midterm') or None
+                enrollment.final = request.POST.get('final') or None
+                enrollment.save()
+                messages.success(request, 'Cập nhật điểm số thành công!')
+
         # Xử lý thêm/cập nhật lịch học
         elif 'add_schedule' in request.POST:
             if current_schedule:
@@ -362,21 +377,229 @@ def attendance_delete(request, pk):
 @login_required
 def feedback_list(request):
     feedbacks = feedback.objects.all()
-    return render(request, 'core/feedback_list.html', {'feedbacks': feedbacks})
+    students = hoc_vien.objects.all()
+    teachers = teacher.objects.all()
+    classes = clazz.objects.all()
+    return render(request, 'core/feedback_list.html', {
+        'feedbacks': feedbacks,
+        'students': students,
+        'teachers': teachers,
+        'classes': classes,
+    })
+
+@login_required
+def feedback_create(request):
+    if request.method == 'POST':
+        student_id = request.POST.get('student_id')
+        teacher_id = request.POST.get('teacher_id')
+        class_id = request.POST.get('class_id')
+        teacher_rate = request.POST.get('teacher_rate')
+        class_rate = request.POST.get('class_rate')
+        
+        try:
+            student = get_object_or_404(hoc_vien, student_id=student_id)
+            teacher_obj = get_object_or_404(teacher, teacher_id=teacher_id)
+            class_obj = get_object_or_404(clazz, class_id=class_id)
+            
+            feedback.objects.create(
+                student=student,
+                teacher=teacher_obj,
+                class_obj=class_obj,
+                teacher_rate=teacher_rate,
+                class_rate=class_rate
+            )
+            messages.success(request, 'Thêm đánh giá thành công!')
+        except Exception as e:
+            messages.error(request, f'Có lỗi xảy ra: {str(e)}')
+    
+    return redirect('core:feedback_list')
+
+@login_required
+def feedback_import(request):
+    if request.method == 'POST' and request.FILES.get('excel_file'):
+        from decimal import Decimal
+        import traceback
+        import openpyxl
+        
+        try:
+            excel_file = request.FILES['excel_file']
+            skip_header = request.POST.get('skip_header')
+            
+            print(f"File name: {excel_file.name}")
+            print(f"File size: {excel_file.size}")
+            print(f"Skip header: {skip_header}")
+            
+            # Chỉ xử lý file Excel (.xlsx)
+            if not excel_file.name.endswith('.xlsx'):
+                messages.error(request, 'Chỉ hỗ trợ file Excel (.xlsx). Vui lòng chuyển đổi file của bạn sang định dạng .xlsx')
+                return redirect('core:feedback_list')
+            
+            # Đọc file Excel bằng openpyxl
+            try:
+                workbook = openpyxl.load_workbook(excel_file)
+                worksheet = workbook.active
+                print(f"Successfully loaded Excel file with {worksheet.max_row} rows and {worksheet.max_column} columns")
+            except Exception as e:
+                messages.error(request, f'Không thể đọc file Excel: {str(e)}')
+                return redirect('core:feedback_list')
+            
+            success_count = 0
+            error_count = 0
+            errors = []
+            
+            # Xác định dòng bắt đầu
+            start_row = 2 if skip_header else 1
+            
+            print(f"Processing from row {start_row} to {worksheet.max_row}")
+            
+            for row_num in range(start_row, worksheet.max_row + 1):
+                try:
+                    # Đọc dữ liệu từ các cột
+                    # Cột A: Timestamp (bỏ qua)
+                    # Cột B: Mã học viên
+                    # Cột C: Mã giáo viên  
+                    # Cột D: Mã lớp học
+                    # Cột E: Điểm giáo viên
+                    # Cột F: Điểm lớp học
+                    
+                    timestamp = worksheet.cell(row=row_num, column=1).value
+                    student_id_raw = worksheet.cell(row=row_num, column=2).value
+                    teacher_id_raw = worksheet.cell(row=row_num, column=3).value
+                    class_id_raw = worksheet.cell(row=row_num, column=4).value
+                    teacher_rate_raw = worksheet.cell(row=row_num, column=5).value
+                    class_rate_raw = worksheet.cell(row=row_num, column=6).value
+                    
+                    print(f"Row {row_num}: timestamp={timestamp}, student_id={student_id_raw}, teacher_id={teacher_id_raw}, class_id={class_id_raw}, teacher_rate={teacher_rate_raw}, class_rate={class_rate_raw}")
+                    
+                    # Kiểm tra dòng trống
+                    if not any([student_id_raw, teacher_id_raw, class_id_raw, teacher_rate_raw, class_rate_raw]):
+                        print(f"Skipping empty row {row_num}")
+                        continue
+                    
+                    # Kiểm tra dữ liệu bị thiếu
+                    if not all([student_id_raw, teacher_id_raw, class_id_raw, teacher_rate_raw, class_rate_raw]):
+                        errors.append(f"Dòng {row_num}: Thiếu dữ liệu bắt buộc")
+                        error_count += 1
+                        continue
+                    
+                    # Chuyển đổi kiểu dữ liệu
+                    try:
+                        student_id = int(float(student_id_raw))
+                        teacher_id = int(float(teacher_id_raw))
+                        class_id = int(float(class_id_raw))
+                        teacher_rate = int(float(teacher_rate_raw))
+                        class_rate = int(float(class_rate_raw))
+                    except (ValueError, TypeError) as e:
+                        errors.append(f"Dòng {row_num}: Lỗi chuyển đổi dữ liệu - {str(e)}")
+                        error_count += 1
+                        continue
+                    
+                    print(f"Parsed data: student_id={student_id}, teacher_id={teacher_id}, class_id={class_id}, teacher_rate={teacher_rate}, class_rate={class_rate}")
+                    
+                    # Validate điểm số
+                    if not (1 <= teacher_rate <= 10):
+                        errors.append(f"Dòng {row_num}: Điểm giáo viên phải từ 1-10 (hiện tại: {teacher_rate})")
+                        error_count += 1
+                        continue
+                    
+                    if not (1 <= class_rate <= 10):
+                        errors.append(f"Dòng {row_num}: Điểm lớp học phải từ 1-10 (hiện tại: {class_rate})")
+                        error_count += 1
+                        continue
+                    
+                    # Tìm đối tượng trong database
+                    try:
+                        student = hoc_vien.objects.get(student_id=student_id)
+                        print(f"Found student: {student.full_name}")
+                    except hoc_vien.DoesNotExist:
+                        errors.append(f"Dòng {row_num}: Không tìm thấy học viên với ID {student_id}")
+                        error_count += 1
+                        continue
+                    
+                    try:
+                        teacher_obj = teacher.objects.get(teacher_id=teacher_id)
+                        print(f"Found teacher: {teacher_obj.full_name}")
+                    except teacher.DoesNotExist:
+                        errors.append(f"Dòng {row_num}: Không tìm thấy giáo viên với ID {teacher_id}")
+                        error_count += 1
+                        continue
+                    
+                    try:
+                        class_obj = clazz.objects.get(class_id=class_id)
+                        print(f"Found class: {class_obj.class_name}")
+                    except clazz.DoesNotExist:
+                        errors.append(f"Dòng {row_num}: Không tìm thấy lớp học với ID {class_id}")
+                        error_count += 1
+                        continue
+                    
+                    # Kiểm tra feedback đã tồn tại chưa
+                    existing_feedback = feedback.objects.filter(
+                        student=student,
+                        teacher=teacher_obj,
+                        class_obj=class_obj
+                    ).first()
+                    
+                    if existing_feedback:
+                        # Cập nhật feedback cũ
+                        existing_feedback.teacher_rate = Decimal(str(teacher_rate))
+                        existing_feedback.class_rate = Decimal(str(class_rate))
+                        existing_feedback.save()
+                        print(f"Updated existing feedback {existing_feedback.id_feedback}")
+                    else:
+                        # Tạo feedback mới
+                        new_feedback = feedback.objects.create(
+                            student=student,
+                            teacher=teacher_obj,
+                            class_obj=class_obj,
+                            teacher_rate=Decimal(str(teacher_rate)),
+                            class_rate=Decimal(str(class_rate))
+                        )
+                        print(f"Created new feedback {new_feedback.id_feedback}")
+                    
+                    success_count += 1
+                    
+                except Exception as e:
+                    error_msg = f"Dòng {row_num}: {str(e)}"
+                    errors.append(error_msg)
+                    error_count += 1
+                    print(f"Error in row {row_num}: {error_msg}")
+                    print(f"Traceback: {traceback.format_exc()}")
+            
+            # Hiển thị kết quả
+            if success_count > 0:
+                messages.success(request, f'Import thành công {success_count} đánh giá!')
+            
+            if error_count > 0:
+                error_msg = f'Có {error_count} lỗi xảy ra:\n' + '\n'.join(errors[:5])
+                if len(errors) > 5:
+                    error_msg += f'\n... và {len(errors) - 5} lỗi khác'
+                messages.error(request, error_msg)
+            
+            if success_count == 0 and error_count == 0:
+                messages.warning(request, 'Không có dữ liệu nào được xử lý. Vui lòng kiểm tra lại file.')
+                
+        except Exception as e:
+            error_msg = f'Lỗi đọc file: {str(e)}'
+            print(f"File reading error: {error_msg}")
+            print(f"Traceback: {traceback.format_exc()}")
+            messages.error(request, error_msg)
+    else:
+        messages.error(request, 'Vui lòng chọn file để import.')
+    
+    return redirect('core:feedback_list')
 
 @login_required
 def feedback_view(request, pk):
-    feedback = get_object_or_404(feedback, pk=pk)
-    return render(request, 'core/feedback_detail.html', {'feedback': feedback})
+    feedback_obj = get_object_or_404(feedback, pk=pk)
+    return render(request, 'core/feedback_detail.html', {'feedback': feedback_obj})
 
 @login_required
 def feedback_delete(request, pk):
-    feedback = get_object_or_404(feedback, pk=pk)
+    feedback_obj = get_object_or_404(feedback, pk=pk)
     if request.method == 'POST':
-        feedback.delete()
+        feedback_obj.delete()
         messages.success(request, 'Đánh giá đã được xóa thành công')
-        return redirect('core:feedback_list')
-    return render(request, 'core/feedback_confirm_delete.html', {'feedback': feedback})
+    return redirect('core:feedback_list')
 
 #-------------------------------
 # Nhan Vien Management Views

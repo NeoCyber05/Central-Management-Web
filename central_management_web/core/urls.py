@@ -63,7 +63,9 @@ urlpatterns = [
 
     # Feedback Management
     path('feedback/', views.feedback_list, name='feedback_list'),
-    path('feedback/<int:pk>/view/', views.feedback_view, name='feedback_view'),
+    path('feedback/create/', views.feedback_create, name='feedback_create'),
+    path('feedback/import/', views.feedback_import, name='feedback_import'),
+    path('feedback/<int:pk>/view/', views.feedback_view, name='feedback_detail'),
     path('feedback/<int:pk>/delete/', views.feedback_delete, name='feedback_delete'),
 
     # Class Type Management

@@ -1,0 +1,285 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Quản lý đánh giá{% endblock %}
+
+{% block content %}
+{% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  {% endfor %}
+{% endif %}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-star"></i> Quản lý đánh giá</h2>
+        <div>
+            <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#importExcelModal">
+                <i class="fas fa-file-excel"></i> Import từ Excel
+            </button>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFeedbackModal">
+                <i class="fas fa-plus"></i> Thêm đánh giá
+            </button>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-list"></i> Danh sách đánh giá</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã đánh giá</th>
+                            <th>Học viên</th>
+                            <th>Lớp học</th>
+                            <th>Giáo viên</th>
+                            <th>Đánh giá lớp</th>
+                            <th>Đánh giá giáo viên</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for feedback in feedbacks %}
+                        <tr>
+                            <td>{{ feedback.id_feedback }}</td>
+                            <td>{{ feedback.student.full_name }}</td>
+                            <td>{{ feedback.class_obj.class_name }}</td>
+                            <td>{{ feedback.teacher.full_name }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress me-2" style="width: 100px; height: 20px;">
+                                        <div class="progress-bar bg-warning" role="progressbar" 
+                                             style="width: {{ feedback.class_rate|floatformat:0 }}0%" 
+                                             aria-valuenow="{{ feedback.class_rate }}" aria-valuemin="0" aria-valuemax="10">
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-warning">{{ feedback.class_rate }}/10</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress me-2" style="width: 100px; height: 20px;">
+                                        <div class="progress-bar bg-info" role="progressbar" 
+                                             style="width: {{ feedback.teacher_rate|floatformat:0 }}0%" 
+                                             aria-valuenow="{{ feedback.teacher_rate }}" aria-valuemin="0" aria-valuemax="10">
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-info">{{ feedback.teacher_rate }}/10</span>
+                                </div>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#viewFeedbackModal{{ feedback.id_feedback }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <form method="post" action="{% url 'core:feedback_delete' feedback.id_feedback %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa đánh giá này?');">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Chưa có đánh giá nào</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Import Excel -->
+<div class="modal fade" id="importExcelModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-file-excel"></i> Import đánh giá từ Excel</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" enctype="multipart/form-data" action="{% url 'core:feedback_import' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Hướng dẫn:</strong> File Excel (.xlsx) phải có các cột theo thứ tự:
+                        <ul class="mb-0 mt-2">
+                            <li><strong>Cột A:</strong> Dấu thời gian (có thể bỏ qua)</li>
+                            <li><strong>Cột B:</strong> Mã học viên (số nguyên)</li>
+                            <li><strong>Cột C:</strong> Mã giáo viên (số nguyên)</li>
+                            <li><strong>Cột D:</strong> Mã lớp học (số nguyên)</li>
+                            <li><strong>Cột E:</strong> Điểm số giáo viên (1-10)</li>
+                            <li><strong>Cột F:</strong> Điểm số lớp học (1-10)</li>
+                        </ul>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                <i class="fas fa-lightbulb"></i> 
+                                <strong>Lưu ý:</strong> Từ Google Forms, hãy mở Google Sheets và xuất file Excel (.xlsx) thay vì CSV để tránh lỗi encoding.
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="excel_file" class="form-label">Chọn file Excel (.xlsx)</label>
+                        <input type="file" class="form-control" id="excel_file" name="excel_file" 
+                               accept=".xlsx" required>
+                    </div>
+                    
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="skip_header" name="skip_header" checked>
+                        <label class="form-check-label" for="skip_header">
+                            Bỏ qua dòng đầu tiên (header)
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-upload"></i> Import
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm đánh giá thủ công -->
+<div class="modal fade" id="addFeedbackModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus"></i> Thêm đánh giá mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'core:feedback_create' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="student_id" class="form-label">Học viên</label>
+                        <select name="student_id" id="student_id" class="form-select" required>
+                            <option value="">-- Chọn học viên --</option>
+                            {% for student in students %}
+                            <option value="{{ student.student_id }}">{{ student.full_name }} ({{ student.student_id }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="teacher_id" class="form-label">Giáo viên</label>
+                        <select name="teacher_id" id="teacher_id" class="form-select" required>
+                            <option value="">-- Chọn giáo viên --</option>
+                            {% for teacher in teachers %}
+                            <option value="{{ teacher.teacher_id }}">{{ teacher.full_name }} ({{ teacher.teacher_id }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="class_id" class="form-label">Lớp học</label>
+                        <select name="class_id" id="class_id" class="form-select" required>
+                            <option value="">-- Chọn lớp học --</option>
+                            {% for class in classes %}
+                            <option value="{{ class.class_id }}">{{ class.class_name }} ({{ class.class_id }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="teacher_rate" class="form-label">Đánh giá giáo viên (1-10)</label>
+                        <input type="number" min="1" max="10" class="form-control" id="teacher_rate" name="teacher_rate" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="class_rate" class="form-label">Đánh giá lớp học (1-10)</label>
+                        <input type="number" min="1" max="10" class="form-control" id="class_rate" name="class_rate" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Lưu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal xem chi tiết đánh giá -->
+{% for feedback in feedbacks %}
+<div class="modal fade" id="viewFeedbackModal{{ feedback.id_feedback }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi tiết đánh giá #{{ feedback.id_feedback }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Học viên:</strong> {{ feedback.student.full_name }}</p>
+                        <p><strong>Mã học viên:</strong> {{ feedback.student.student_id }}</p>
+                        <p><strong>Email:</strong> {{ feedback.student.email }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Giáo viên:</strong> {{ feedback.teacher.full_name }}</p>
+                        <p><strong>Lớp học:</strong> {{ feedback.class_obj.class_name }}</p>
+                        <p><strong>Loại lớp:</strong> {{ feedback.class_obj.type.code }}</p>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Đánh giá giáo viên</h6>
+                        <div class="progress mb-2" style="height: 25px;">
+                            <div class="progress-bar bg-info" role="progressbar" 
+                                 style="width: {{ feedback.teacher_rate|floatformat:0 }}0%" 
+                                 aria-valuenow="{{ feedback.teacher_rate }}" aria-valuemin="0" aria-valuemax="10">
+                                {{ feedback.teacher_rate }}/10
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Đánh giá lớp học</h6>
+                        <div class="progress mb-2" style="height: 25px;">
+                            <div class="progress-bar bg-warning" role="progressbar" 
+                                 style="width: {{ feedback.class_rate|floatformat:0 }}0%" 
+                                 aria-valuenow="{{ feedback.class_rate }}" aria-valuemin="0" aria-valuemax="10">
+                                {{ feedback.class_rate }}/10
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Select2 cho các dropdown
+    $('#student_id, #teacher_id, #class_id').select2({
+        dropdownParent: $('#addFeedbackModal'),
+        width: '100%',
+        placeholder: function() {
+            return $(this).data('placeholder');
+        },
+        allowClear: true
+    });
+});
+</script>
+{% endblock %} 
