@@ -87,11 +87,7 @@
                     <i class="fas fa-tachometer-alt me-2"></i> Dashboard
                 </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.url_name == 'statistics' %}active{% endif %}" href="{% url 'core:statistics' %}">
-                    <i class="fas fa-chart-bar me-2"></i> Thống kê
-                </a>
-            </li>
+
             <li class="nav-item">
                 <a class="nav-link {% if request.resolver_match.url_name == 'teacher_list' %}active{% endif %}" href="{% url 'core:teacher_list' %}">
                     <i class="fas fa-chalkboard-teacher me-2"></i> Quản lý giáo viên

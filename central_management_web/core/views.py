@@ -46,13 +46,135 @@ def logout_view(request):
 @login_required
 @user_passes_test(is_admin, login_url='core:login')
 def admin_dashboard(request):
+    from django.db import connection
+    from datetime import date
+    
+    with connection.cursor() as cursor:
+        # 1. Doanh thu theo từng tháng của năm hiện tại
+        current_year = date.today().year
+        cursor.execute("""
+            SELECT 
+                EXTRACT(MONTH FROM e.enrollment_date) as month,
+                SUM(c.price) as revenue
+            FROM enrollments e
+            JOIN clazz c ON e.class_id = c.class_id
+            WHERE EXTRACT(YEAR FROM e.enrollment_date) = %s
+            GROUP BY EXTRACT(MONTH FROM e.enrollment_date)
+            ORDER BY month;
+        """, [current_year])
+        monthly_revenue_current = cursor.fetchall()
+        
+
+        
+        # 2. Số lượng lớp đang mở hiện tại
+        cursor.execute("""
+            SELECT COUNT(*) 
+            FROM clazz 
+            WHERE khai_giang <= %s AND ket_thuc >= %s;
+        """, [date.today(), date.today()])
+        active_classes = cursor.fetchone()[0]
+        
+        # 3. Số lượng nhân viên
+        cursor.execute("SELECT COUNT(*) FROM nhan_vien;")
+        total_staff = cursor.fetchone()[0]
+        
+        # 4. Số lượng giáo viên
+        cursor.execute("SELECT COUNT(*) FROM teacher;")
+        total_teachers = cursor.fetchone()[0]
+        
+        # 5. Số lượng học viên đang học (đang học lớp còn mở)
+        cursor.execute("""
+            SELECT COUNT(DISTINCT e.student_id)
+            FROM enrollments e
+            JOIN clazz c ON e.class_id = c.class_id
+            WHERE c.khai_giang <= %s AND c.ket_thuc >= %s;
+        """, [date.today(), date.today()])
+        active_students = cursor.fetchone()[0]
+        
+        # 6. Bảng xếp hạng thống kê đánh giá theo từng loại lớp
+        cursor.execute("""
+            SELECT 
+                ct.describe as class_type_name,
+                ct.code as class_type_code,
+                COUNT(f.id_feedback) as total_feedbacks,
+                ROUND(AVG(f.class_rate), 2) as avg_class_rating,
+                ROUND(AVG(f.teacher_rate), 2) as avg_teacher_rating
+            FROM class_type ct
+            LEFT JOIN clazz c ON ct.type_id = c.type_id
+            LEFT JOIN feedback f ON c.class_id = f.class_id
+            GROUP BY ct.type_id, ct.describe, ct.code
+            ORDER BY avg_class_rating DESC, avg_teacher_rating DESC;
+        """)
+        class_type_ratings = cursor.fetchall()
+        
+        # 7. Bảng xếp hạng điểm đánh giá giáo viên
+        cursor.execute("""
+            SELECT 
+                t.full_name as teacher_name,
+                t.teacher_id,
+                COUNT(f.id_feedback) as total_feedbacks,
+                ROUND(AVG(f.teacher_rate), 2) as avg_teacher_rating
+            FROM teacher t
+            LEFT JOIN feedback f ON t.teacher_id = f.teacher_id
+            GROUP BY t.teacher_id, t.full_name
+            HAVING COUNT(f.id_feedback) > 0
+            ORDER BY avg_teacher_rating DESC, total_feedbacks DESC
+            LIMIT 10;
+        """)
+        teacher_rankings = cursor.fetchall()
+        
+        # 8. Bảng xếp hạng điểm số tổng kết học viên
+        cursor.execute("""
+            SELECT 
+                hv.full_name as student_name,
+                hv.student_id,
+                COUNT(e.id) as total_classes,
+                ROUND(AVG(
+                    (COALESCE(e.minitest1, 0) + COALESCE(e.minitest2, 0) + 
+                     COALESCE(e.minitest3, 0) + COALESCE(e.minitest4, 0)) / 4.0 * 0.4 + 
+                    COALESCE(e.midterm, 0) * 0.3 + 
+                    COALESCE(e.final, 0) * 0.3
+                ), 2) as avg_final_score
+            FROM hoc_vien hv
+            LEFT JOIN enrollments e ON hv.student_id = e.student_id
+            WHERE e.minitest1 IS NOT NULL OR e.minitest2 IS NOT NULL OR 
+                  e.minitest3 IS NOT NULL OR e.minitest4 IS NOT NULL OR 
+                  e.midterm IS NOT NULL OR e.final IS NOT NULL
+            GROUP BY hv.student_id, hv.full_name
+            HAVING ROUND(AVG(
+                    (COALESCE(e.minitest1, 0) + COALESCE(e.minitest2, 0) + 
+                     COALESCE(e.minitest3, 0) + COALESCE(e.minitest4, 0)) / 4.0 * 0.4 + 
+                    COALESCE(e.midterm, 0) * 0.3 + 
+                    COALESCE(e.final, 0) * 0.3
+                ), 2) > 0
+            ORDER BY avg_final_score DESC, total_classes DESC
+            LIMIT 10;
+        """)
+        student_rankings = cursor.fetchall()
+    
+    # Chuẩn bị dữ liệu doanh thu theo tháng (12 tháng)
+    revenue_data = [0] * 12  # Khởi tạo 12 tháng với doanh thu = 0
+    for month, revenue in monthly_revenue_current:
+        revenue_data[int(month) - 1] = int(revenue) if revenue else 0
+    
+    import json
+    
+    # Đảm bảo dữ liệu safe
+    months_list = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+                   'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12']
+    
+    
     context = {
-        'total_students': hoc_vien.objects.count(),
-        'total_teachers': teacher.objects.count(),
-        'total_classes': clazz.objects.count(),
-        'total_schedules': schedule.objects.count(),
-        'recent_attendance': attendance.objects.order_by('-attendance_date')[:5],
-        'recent_feedback': feedback.objects.order_by('-id_feedback')[:5],
+        'total_staff': total_staff,
+        'total_teachers': total_teachers,
+        'active_classes': active_classes,
+        'active_students': active_students,
+        'current_year': current_year,
+        'monthly_revenue_current_json': json.dumps(revenue_data, ensure_ascii=False),
+        'months_json': json.dumps(months_list, ensure_ascii=False),
+        'class_type_ratings': class_type_ratings,
+        'teacher_rankings': teacher_rankings,
+        'student_rankings': student_rankings,
     }
     return render(request, 'core/admin_dashboard.html', context)
 

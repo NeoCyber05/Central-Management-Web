@@ -1,22 +1,133 @@
 {% extends 'core/base.html' %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}Dashboard - Trung tâm Toán học{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100px;
+        height: 100px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+        transform: translate(50%, -50%);
+    }
+    .stat-card .icon {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        opacity: 0.8;
+    }
+    .stat-card .number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    .stat-card .label {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    .stat-card.blue { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .stat-card.green { background: linear-gradient(135deg, #48CAE4 0%, #023E8A 100%); }
+    .stat-card.orange { background: linear-gradient(135deg, #FF6B6B 0%, #EE5A24 100%); }
+    .stat-card.purple { background: linear-gradient(135deg, #A8E6CF 0%, #3DDC84 100%); }
+    .stat-card.red { background: linear-gradient(135deg, #FC466B 0%, #3F5EFB 100%); }
+    
+    .card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+    .card-header {
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        padding: 20px;
+        border-radius: 15px 15px 0 0;
+    }
+    .ranking-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+    .ranking-item {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        margin-bottom: 10px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    .ranking-item:hover {
+        background: #e9ecef;
+        transform: translateX(5px);
+    }
+    .ranking-position {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 15px;
+    }
+    .ranking-position.gold { background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%); }
+    .ranking-position.silver { background: linear-gradient(135deg, #C0C0C0 0%, #808080 100%); }
+    .ranking-position.bronze { background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%); }
+    
+    .chart-container {
+        position: relative;
+        height: 400px;
+        margin: 20px 0;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="text-primary mb-0">
+                <i class="fas fa-tachometer-alt me-2"></i>Dashboard Trung tâm Toán học
+            </h2>
+            <p class="text-muted">Tổng quan hoạt động và thống kê</p>
+        </div>
+    </div>
+
     <!-- Statistics Cards -->
     <div class="row">
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="stat-card">
+        <div class="col-xl-2-4 col-md-6 mb-4">
+            <div class="stat-card blue">
                 <div class="icon">
-                    <i class="fas fa-user-graduate"></i>
+                    <i class="fas fa-user-tie"></i>
                 </div>
-                <div class="number">{{ total_students }}</div>
-                <div class="label">Học viên</div>
+                <div class="number">{{ total_staff }}</div>
+                <div class="label">Nhân viên</div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="stat-card">
+        <div class="col-xl-2-4 col-md-6 mb-4">
+            <div class="stat-card green">
                 <div class="icon">
                     <i class="fas fa-chalkboard-teacher"></i>
                 </div>
@@ -24,117 +135,148 @@
                 <div class="label">Giáo viên</div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="stat-card">
+        <div class="col-xl-2-4 col-md-6 mb-4">
+            <div class="stat-card orange">
                 <div class="icon">
-                    <i class="fas fa-book"></i>
+                    <i class="fas fa-school"></i>
                 </div>
-                <div class="number">{{ total_classes }}</div>
-                <div class="label">Lớp học</div>
+                <div class="number">{{ active_classes }}</div>
+                <div class="label">Lớp đang mở</div>
             </div>
         </div>
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="stat-card">
+        <div class="col-xl-2-4 col-md-6 mb-4">
+            <div class="stat-card purple">
                 <div class="icon">
-                    <i class="fas fa-calendar-alt"></i>
+                    <i class="fas fa-user-graduate"></i>
                 </div>
-                <div class="number">{{ total_schedules }}</div>
-                <div class="label">Lịch học</div>
+                <div class="number">{{ active_students }}</div>
+                <div class="label">Học viên đang học</div>
             </div>
         </div>
     </div>
 
-    <!-- Recent Activity -->
+    <!-- Revenue Chart -->
     <div class="row">
-        <!-- Recent Attendance -->
-        <div class="col-xl-6 mb-4">
+        <div class="col-12">
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-clipboard-check"></i> Điểm danh gần đây
+                        <i class="fas fa-chart-line text-primary"></i> Doanh thu theo tháng năm {{ current_year }}
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Học viên</th>
-                                    <th>Lớp</th>
-                                    <th>Ngày</th>
-                                    <th>Trạng thái</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for attendance in recent_attendance %}
-                                <tr>
-                                    <td>{{ attendance.student.name }}</td>
-                                    <td>{{ attendance.class_obj.name }}</td>
-                                    <td>{{ attendance.date|date:"d/m/Y" }}</td>
-                                    <td>
-                                        {% if attendance.status == 'present' %}
-                                        <span class="badge bg-success">Có mặt</span>
-                                        {% else %}
-                                        <span class="badge bg-danger">Vắng mặt</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="4" class="text-center">Không có dữ liệu</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                    
+                    <!-- Hidden data for JavaScript -->
+                    <script id="chart-data" type="application/json">
+                    {
+                        "months": {{ months_json|safe }},
+                        "revenue": {{ monthly_revenue_current_json|safe }}
+                    }
+                    </script>
+                    
+                    <!-- Debug info temporarily -->
+                    <div class="mt-3 p-3 bg-light rounded">
+                        <small class="text-muted">
+                            <strong>Debug:</strong><br>
+                            Months JSON: {{ months_json|safe }}<br>
+                            Revenue JSON: {{ monthly_revenue_current_json|safe }}
+                        </small>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Recent Feedback -->
-        <div class="col-xl-6 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">
-                        <i class="fas fa-star"></i> Đánh giá gần đây
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Học viên</th>
-                                    <th>Lớp</th>
-                                    <th>Đánh giá</th>
-                                    <th>Ngày</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for feedback in recent_feedback %}
-                                <tr>
-                                    <td>{{ feedback.student.name }}</td>
-                                    <td>{{ feedback.class_obj.name }}</td>
-                                    <td>
-                                        {% for i in "12345" %}
-                                        {% if forloop.counter <= feedback.rating %}
-                                        <i class="fas fa-star text-warning"></i>
-                                        {% else %}
-                                        <i class="far fa-star text-warning"></i>
-                                        {% endif %}
-                                        {% endfor %}
-                                    </td>
-                                    <td>{{ feedback.created_at|date:"d/m/Y" }}</td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="4" class="text-center">Không có dữ liệu</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
+    <!-- Rankings -->
+    <div class="row">
+        <!-- Class Type Rankings -->
+        <div class="col-lg-4">
+            <div class="ranking-card">
+                <h5 class="text-primary mb-3">
+                    <i class="fas fa-layer-group me-2"></i>Xếp hạng loại lớp
+                </h5>
+                {% for class_type in class_type_ratings %}
+                <div class="ranking-item">
+                    <div class="ranking-position {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">
+                        {{ forloop.counter }}
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold">{{ class_type.0 }}</div>
+                        <small class="text-muted">
+                            Lớp: {{ class_type.2|default:0 }} điểm | GV: {{ class_type.3|default:0 }} điểm
+                        </small>
+                    </div>
+                    <div class="text-end">
+                        <div class="badge bg-primary">{{ class_type.2|default:0 }} FB</div>
                     </div>
                 </div>
+                {% empty %}
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-chart-bar fa-3x mb-3"></i>
+                    <p>Chưa có dữ liệu đánh giá</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Teacher Rankings -->
+        <div class="col-lg-4">
+            <div class="ranking-card">
+                <h5 class="text-success mb-3">
+                    <i class="fas fa-star me-2"></i>Top giáo viên xuất sắc
+                </h5>
+                {% for teacher in teacher_rankings %}
+                <div class="ranking-item">
+                    <div class="ranking-position {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">
+                        {{ forloop.counter }}
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold">{{ teacher.0 }}</div>
+                        <small class="text-muted">ID: {{ teacher.1 }}</small>
+                    </div>
+                    <div class="text-end">
+                        <div class="badge bg-success">{{ teacher.3 }} ⭐</div>
+                        <div><small class="text-muted">{{ teacher.2 }} đánh giá</small></div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-chalkboard-teacher fa-3x mb-3"></i>
+                    <p>Chưa có dữ liệu đánh giá giáo viên</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Student Rankings -->
+        <div class="col-lg-4">
+            <div class="ranking-card">
+                <h5 class="text-warning mb-3">
+                    <i class="fas fa-trophy me-2"></i>Top học viên xuất sắc
+                </h5>
+                {% for student in student_rankings %}
+                <div class="ranking-item">
+                    <div class="ranking-position {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">
+                        {{ forloop.counter }}
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold">{{ student.0 }}</div>
+                        <small class="text-muted">ID: {{ student.1 }}</small>
+                    </div>
+                    <div class="text-end">
+                        <div class="badge bg-warning">{{ student.3 }} điểm</div>
+                        <div><small class="text-muted">{{ student.2 }} lớp</small></div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4 text-muted">
+                    <i class="fas fa-user-graduate fa-3x mb-3"></i>
+                    <p>Chưa có dữ liệu điểm số</p>
+                </div>
+                {% endfor %}
             </div>
         </div>
     </div>
@@ -145,29 +287,33 @@
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">
-                        <i class="fas fa-bolt"></i> Thao tác nhanh
+                        <i class="fas fa-bolt text-warning"></i> Thao tác nhanh
                     </h5>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-3 mb-3">
-                            <a href="{% url 'core:student_create' %}" class="btn btn-primary w-100">
-                                <i class="fas fa-user-plus"></i> Thêm học viên
+                            <a href="{% url 'core:student_create' %}" class="btn btn-primary w-100 py-3">
+                                <i class="fas fa-user-plus mb-2 d-block"></i>
+                                <span>Thêm học viên</span>
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="{% url 'core:teacher_create' %}" class="btn btn-success w-100">
-                                <i class="fas fa-chalkboard-teacher"></i> Thêm giáo viên
+                            <a href="{% url 'core:teacher_create' %}" class="btn btn-success w-100 py-3">
+                                <i class="fas fa-chalkboard-teacher mb-2 d-block"></i>
+                                <span>Thêm giáo viên</span>
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="{% url 'core:class_create' %}" class="btn btn-info w-100">
-                                <i class="fas fa-book"></i> Thêm lớp học
+                            <a href="{% url 'core:class_create' %}" class="btn btn-info w-100 py-3">
+                                <i class="fas fa-school mb-2 d-block"></i>
+                                <span>Thêm lớp học</span>
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="{% url 'core:schedule_create' %}" class="btn btn-warning w-100">
-                                <i class="fas fa-calendar-plus"></i> Thêm lịch học
+                            <a href="{% url 'core:nhanvien_create' %}" class="btn btn-warning w-100 py-3">
+                                <i class="fas fa-user-tie mb-2 d-block"></i>
+                                <span>Thêm nhân viên</span>
                             </a>
                         </div>
                     </div>
@@ -176,4 +322,136 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+console.log('Script loaded...');
+
+// Custom CSS for 5 columns
+const style = document.createElement('style');
+style.textContent = `
+    .col-xl-2-4 {
+        flex: 0 0 auto;
+        width: 20%;
+    }
+    @media (max-width: 1199.98px) {
+        .col-xl-2-4 {
+            width: 50%;
+        }
+    }
+    @media (max-width: 767.98px) {
+        .col-xl-2-4 {
+            width: 100%;
+        }
+    }
+`;
+document.head.appendChild(style);
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded...');
+    console.log('Chart.js available:', typeof Chart !== 'undefined');
+    
+    // Revenue Chart
+    const canvas = document.getElementById('revenueChart');
+    const dataScript = document.getElementById('chart-data');
+    
+    console.log('Canvas found:', !!canvas);
+    console.log('Data script found:', !!dataScript);
+    
+    if (!canvas) {
+        console.error('Canvas không tìm thấy');
+        return;
+    }
+    
+    if (!dataScript) {
+        console.error('Data script không tìm thấy');
+        return;
+    }
+    
+    console.log('Raw JSON data:', dataScript.textContent);
+    
+    try {
+        const chartData = JSON.parse(dataScript.textContent);
+        const monthsData = chartData.months;
+        const revenueData = chartData.revenue;
+        
+        console.log('Parsed months:', monthsData);
+        console.log('Parsed revenue:', revenueData);
+        
+        // Kiểm tra dữ liệu
+        if (!Array.isArray(monthsData) || !Array.isArray(revenueData)) {
+            throw new Error('Dữ liệu không phải array');
+        }
+        
+        if (monthsData.length !== revenueData.length) {
+            throw new Error('Độ dài months và revenue không khớp');
+        }
+        
+        const ctx = canvas.getContext('2d');
+        console.log('Context created:', !!ctx);
+        
+        // Tạo biểu đồ đơn giản trước
+        const revenueChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: monthsData,
+                datasets: [{
+                    label: 'Doanh thu (VNĐ)',
+                    data: revenueData,
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Doanh thu: ' + new Intl.NumberFormat('vi-VN').format(context.parsed.y) + ' VNĐ';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return new Intl.NumberFormat('vi-VN').format(value) + ' VNĐ';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        console.log('Chart created successfully:', !!revenueChart);
+        
+    } catch (error) {
+        console.error('Lỗi chi tiết:', error);
+        console.error('Error stack:', error.stack);
+        
+        // Hiển thị lỗi chi tiết
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'alert alert-danger text-center';
+        errorDiv.innerHTML = `
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            Lỗi biểu đồ: ${error.message}
+            <br><small>Kiểm tra Console để xem chi tiết</small>
+        `;
+        canvas.parentNode.appendChild(errorDiv);
+        canvas.style.display = 'none';
+    }
+});
+</script>
 {% endblock %} 
