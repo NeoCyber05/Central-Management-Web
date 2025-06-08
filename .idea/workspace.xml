@@ -6,6 +6,12 @@
   <component name="ChangeListManager">
     <list default="true" id="8575c5d3-61fe-4d99-8736-ac8bea34f90b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/central_management_web/COMPARISON_ID_METHODS.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/central_management_web/core/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/central_management_web/core/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/central_management_web/core/migrations/0001_initial.py" beforeDir="false" afterPath="$PROJECT_DIR$/central_management_web/core/migrations/0001_initial.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/central_management_web/core/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/central_management_web/core/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/central_management_web/postgresql_setup_auto_id.sql" beforeDir="false" afterPath="$PROJECT_DIR$/central_management_web/postgresql_setup_auto_id.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/feedback_sample.csv" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -110,6 +116,8 @@
       <workItem from="1747915650131" duration="4968000" />
       <workItem from="1747964355060" duration="28000" />
       <workItem from="1747964628179" duration="35000" />
+      <workItem from="1749093633852" duration="86000" />
+      <workItem from="1749220560878" duration="4057000" />
     </task>
     <servers />
   </component>

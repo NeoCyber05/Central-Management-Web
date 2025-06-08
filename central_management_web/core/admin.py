@@ -36,9 +36,9 @@ class ClassAdmin(admin.ModelAdmin):
 
 @admin.register(schedule)
 class ScheduleAdmin(admin.ModelAdmin):
-    list_display = ('id_schedule', 'class_obj', 'day', 'start_time', 'end_time')
-    search_fields = ('id_schedule', 'class_obj__class_name', 'day')
-    list_filter = ('day',)
+    list_display = ('id_schedule', 'class_obj', 'days', 'start_time', 'end_time')
+    search_fields = ('id_schedule', 'class_obj__class_name', 'days')
+    list_filter = ('days',)
     ordering = ('id_schedule',)
     raw_id_fields = ('class_obj',)
 

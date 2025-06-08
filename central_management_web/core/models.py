@@ -78,7 +78,7 @@ class hoc_vien(models.Model):
 class class_type(models.Model):
     type_id = models.AutoField(primary_key=True, verbose_name="Mã loại lớp")
     describe = models.TextField(verbose_name="Mô tả")
-    code = models.CharField(max_length=1, unique=True, verbose_name="Mã code")  # Ví dụ: 'O', 'M', ...
+    code = models.CharField(max_length=1, verbose_name="Mã code")  # Ví dụ: 'O', 'M', ...
 
     def __str__(self):
         return f"{self.code} - {self.describe}"
@@ -93,7 +93,7 @@ class clazz(models.Model):
     teacher = models.ForeignKey(teacher, on_delete=models.PROTECT, db_column='teacher_id', verbose_name="Giáo viên")
     type = models.ForeignKey(class_type, on_delete=models.PROTECT, db_column='type_id', verbose_name="Loại lớp")
     class_name = models.CharField(max_length=40, verbose_name="Tên lớp học")
-    room = models.CharField(max_length=15, verbose_name="Phòng học")
+    room = models.IntegerField(verbose_name="Phòng học")
     khai_giang = models.DateField(verbose_name="Ngày khai giảng")
     ket_thuc = models.DateField(verbose_name="Ngày kết thúc")
     si_so = models.IntegerField(verbose_name="Sĩ số hiện tại", default=0)
@@ -121,7 +121,7 @@ DAY_CHOICES = [
 class schedule(models.Model):
     id_schedule = models.AutoField(primary_key=True, verbose_name="Mã Lịch học")
     class_obj = models.OneToOneField(clazz, on_delete=models.CASCADE, db_column='class_id', related_name='schedule', verbose_name="Lớp học")
-    day = ArrayField(
+    days = ArrayField(
         models.CharField(max_length=2, choices=DAY_CHOICES),
         size=3,  # Chỉ cho phép đúng 3 phần tử
         verbose_name="Các ngày trong tuần"
@@ -138,6 +138,7 @@ class schedule(models.Model):
         db_table = 'schedule'
 
 class enrollments(models.Model):
+    id = models.AutoField(primary_key=True)
     # Composite primary key với student_id và class_id
     student = models.ForeignKey(hoc_vien, on_delete=models.CASCADE, db_column='student_id', verbose_name="Học viên")
     class_obj = models.ForeignKey(clazz, on_delete=models.CASCADE, db_column='class_id', verbose_name="Lớp học")
@@ -156,7 +157,7 @@ class enrollments(models.Model):
         verbose_name = "Đăng Ký Học"
         verbose_name_plural = "Đăng Ký Học"
         db_table = 'enrollments'
-        unique_together = (('student', 'class_obj'),)  # Composite primary key
+        unique_together = (('student', 'class_obj'),)  # Đảm bảo không trùng học viên trong cùng lớp
         constraints = [
             models.CheckConstraint(check=(models.Q(minitest1__gte=0, minitest1__lte=10) | models.Q(minitest1__isnull=True)),name='minitest1_in_range'),
             models.CheckConstraint(check=(models.Q(minitest2__gte=0, minitest2__lte=10) |models.Q(minitest2__isnull=True)),name='minitest2_in_range'),
@@ -165,7 +166,7 @@ class enrollments(models.Model):
             models.CheckConstraint(check=(models.Q(midterm__gte=0, midterm__lte=10) |models.Q(midterm__isnull=True)),name='midterm_in_range'),
             models.CheckConstraint(check=(models.Q(final__gte=0, final__lte=10) |models.Q(final__isnull=True)),name='final_in_range'),
         ]
-
+ 
 class attendance(models.Model):
     id_attend = models.AutoField(primary_key=True, verbose_name="Mã Điểm danh")
     student = models.ForeignKey(hoc_vien, on_delete=models.CASCADE, db_column='student_id', verbose_name="Học viên")
