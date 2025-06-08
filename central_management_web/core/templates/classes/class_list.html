@@ -1,12 +1,72 @@
+<!-- central_management_web/core/templates/core/class_list.html -->
 {% extends 'core/base.html' %}
 
 {% block title %}Quản lý lớp học{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const form = searchInput.closest('form');
+    
+    // Auto submit form when user stops typing (debounce)
+    let searchTimeout;
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() {
+            form.submit();
+        }, 500); // Wait 500ms after user stops typing
+    });
+    
+    // Submit on Enter
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            clearTimeout(searchTimeout);
+            form.submit();
+        }
+    });
+    
+    // Focus search input
+    searchInput.focus();
+});
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Danh sách lớp học</h2>
         <a href="{% url 'core:class_create' %}" class="btn btn-success">+ Thêm lớp học</a>
+    </div>
+    
+    <!-- Search Form -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-10">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" 
+                               class="form-control" 
+                               name="search" 
+                               value="{{ search_query }}" 
+                               placeholder="Tìm kiếm theo tên lớp, giáo viên, nhân viên, loại lớp, mã lớp, hoặc phòng..."
+                               id="searchInput">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-success w-100">Tìm kiếm</button>
+                </div>
+                {% if search_query %}
+                <div class="col-12">
+                    <div class="d-flex align-items-center">
+                        <span class="text-muted me-2">Kết quả tìm kiếm cho: <strong>"{{ search_query }}"</strong></span>
+                        <a href="{% url 'core:class_list' %}" class="btn btn-sm btn-outline-secondary">Xóa bộ lọc</a>
+                    </div>
+                </div>
+                {% endif %}
+            </form>
+        </div>
     </div>
     <div class="card shadow">
         <div class="card-body p-0">
@@ -17,35 +77,31 @@
                         <th>Tên lớp</th>
                         <th>Giáo viên</th>
                         <th>Nhân viên quản lý</th>
-                        <th>Loại lớp</th>
-                        <th>Phòng học</th>
-                        <th>Ngày khai giảng</th>
-                        <th>Ngày kết thúc</th>
+                        <th>Class Type ID</th>
+                        <th>Phòng</th>
+                        <th>Khai giảng</th>
+                        <th>Kết thúc</th>
                         <th>Sĩ số</th>
                         <th>Học phí</th>
                         <th>Hành động</th>
                     </tr>
                 </thead>
                 <tbody>
-                {% for class in classes %}
+                {% for c in classes %}
                     <tr>
-                        <td>{{ class.class_id }}</td>
+                        <td>{{ c.class_id }}</td>
+                        <td><a href="{% url 'core:class_detail' c.class_id %}"><strong>{{ c.class_name }}</strong></a></td>
+                        <td>{{ c.teacher.full_name }}</td>
+                        <td>{{ c.nhan_vien.full_name }}</td>
+                        <td>{{ c.type_id }}</td>
+                        <td>{{ c.room }}</td>
+                        <td>{{ c.khai_giang }}</td>
+                        <td>{{ c.ket_thuc }}</td>
+                        <td>{{ c.si_so }}</td>
+                        <td>{{ c.price|floatformat:0 }} VNĐ</td>
                         <td>
-                            <a href="{% url 'core:class_detail' class.class_id %}" class="text-decoration-none">
-                                {{ class.class_name }}
-                            </a>
-                        </td>
-                        <td>{{ class.teacher.full_name }}</td>
-                        <td>{{ class.nhan_vien.full_name }}</td>
-                        <td>{{ class.type.code }}</td>
-                        <td>{{ class.room }}</td>
-                        <td>{{ class.khai_giang }}</td>
-                        <td>{{ class.ket_thuc }}</td>
-                        <td>{{ class.si_so }}</td>
-                        <td>{{ class.price }} VNĐ</td>
-                        <td>
-                            <a href="{% url 'core:class_edit' class.class_id %}" class="btn btn-sm btn-warning">Sửa</a>
-                            <a href="{% url 'core:class_delete' class.class_id %}" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa lớp học này?');">Xóa</a>
+                            <a href="{% url 'core:class_edit' c.class_id %}" class="btn btn-sm btn-warning">Sửa</a>
+                            <a href="{% url 'core:class_delete' c.class_id %}" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa lớp này?');">Xóa</a>
                         </td>
                     </tr>
                 {% empty %}
@@ -56,4 +112,4 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}

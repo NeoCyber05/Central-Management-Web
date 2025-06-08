@@ -52,8 +52,7 @@ class ClassTypeForm(forms.ModelForm):
         fields = ['describe', 'code']
 
 class ScheduleForm(forms.ModelForm):
-    # Override trường day để có thể hiển thị checkbox
-    day = forms.MultipleChoiceField(
+    days = forms.MultipleChoiceField(
         choices=[
             ('2', 'Thứ 2'),
             ('3', 'Thứ 3'),
@@ -67,20 +66,19 @@ class ScheduleForm(forms.ModelForm):
         label="Chọn ngày trong tuần",
         required=True
     )
-    
     class Meta:
         model = schedule
-        fields = ['day', 'start_time', 'end_time']
+        fields = ['days', 'start_time', 'end_time']
         widgets = {
             'start_time': forms.TimeInput(attrs={
-                'type': 'time', 
+                'type': 'time',
                 'class': 'form-control',
                 'step': '60',
                 'data-time-format': '24',
                 'pattern': '[0-9]{2}:[0-9]{2}'
             }),
             'end_time': forms.TimeInput(attrs={
-                'type': 'time', 
+                'type': 'time',
                 'class': 'form-control',
                 'step': '60',
                 'data-time-format': '24',
@@ -88,13 +86,13 @@ class ScheduleForm(forms.ModelForm):
             }),
         }
 
-    def clean_day(self):
-        day = self.cleaned_data.get('day')
-        if not day:
+    def clean_days(self):
+        days = self.cleaned_data.get('days')
+        if not days:
             raise forms.ValidationError("Vui lòng chọn ít nhất một ngày trong tuần.")
-        if len(day) != 3:
+        if len(days) != 3:
             raise forms.ValidationError("Vui lòng chọn đúng 3 ngày trong tuần.")
-        return day
+        return days
 
     def clean(self):
         cleaned_data = super().clean()

@@ -235,8 +235,22 @@ def user_delete(request, pk):
 # Student Management Views
 @login_required
 def student_list(request):
+    search_query = request.GET.get('search', '')
     students = hoc_vien.objects.all()
-    return render(request, 'students/student_list.html', {'students': students})
+    
+    if search_query:
+        students = students.filter(
+            Q(full_name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(sdt__icontains=search_query) |
+            Q(student_id__icontains=search_query)
+        )
+    
+    context = {
+        'students': students,
+        'search_query': search_query,
+    }
+    return render(request, 'students/student_list.html', context)
 
 @login_required
 def student_create(request):
@@ -276,8 +290,23 @@ def student_delete(request, pk):
 # Teacher Management Views
 #-------------------------------
 def teacher_list(request):
+    search_query = request.GET.get('search', '')
     teachers = teacher.objects.all()
-    return render(request, 'teachers/teacher_list.html', {'teachers': teachers})
+    
+    if search_query:
+        teachers = teachers.filter(
+            Q(full_name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(sdt__icontains=search_query) |
+            Q(teacher_id__icontains=search_query) |
+            Q(trinh_do__icontains=search_query)
+        )
+    
+    context = {
+        'teachers': teachers,
+        'search_query': search_query,
+    }
+    return render(request, 'teachers/teacher_list.html', context)
 
 def teacher_create(request):
     if request.method == 'POST':
@@ -312,8 +341,24 @@ def teacher_delete(request, pk):
 #-------------------------------
 @login_required
 def class_list(request):
-    classes = clazz.objects.all()
-    return render(request, 'core/class_list.html', {'classes': classes})
+    search_query = request.GET.get('search', '')
+    classes = clazz.objects.select_related('teacher', 'nhan_vien', 'type').all()
+    
+    if search_query:
+        classes = classes.filter(
+            Q(class_name__icontains=search_query) |
+            Q(teacher__full_name__icontains=search_query) |
+            Q(nhan_vien__full_name__icontains=search_query) |
+            Q(type__describe__icontains=search_query) |
+            Q(class_id__icontains=search_query) |
+            Q(room__icontains=search_query)
+        )
+    
+    context = {
+        'classes': classes,
+        'search_query': search_query,
+    }
+    return render(request, 'classes/class_list.html', context)
 
 @login_required
 def class_create(request):
@@ -728,8 +773,22 @@ def feedback_delete(request, pk):
 #-------------------------------
 @login_required
 def nhanvien_list(request):
+    search_query = request.GET.get('search', '')
     nhanviens = nhan_vien.objects.all()
-    return render(request, 'nhanvien/nhanvien_list.html', {'nhanviens': nhanviens})
+    
+    if search_query:
+        nhanviens = nhanviens.filter(
+            Q(full_name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(sdt__icontains=search_query) |
+            Q(nv_id__icontains=search_query)
+        )
+    
+    context = {
+        'nhanviens': nhanviens,
+        'search_query': search_query,
+    }
+    return render(request, 'nhanvien/nhanvien_list.html', context)
 
 @login_required
 def nhanvien_create(request):

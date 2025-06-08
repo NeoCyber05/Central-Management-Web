@@ -8,6 +8,36 @@
         <h2>Danh sách học viên</h2>
         <a href="{% url 'core:student_create' %}" class="btn btn-primary">+ Thêm học viên</a>
     </div>
+    
+    <!-- Search Form -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-10">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" 
+                               class="form-control" 
+                               name="search" 
+                               value="{{ search_query }}" 
+                               placeholder="Tìm kiếm theo tên, email, SĐT, hoặc mã học viên..."
+                               id="searchInput">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">Tìm kiếm</button>
+                </div>
+                {% if search_query %}
+                <div class="col-12">
+                    <div class="d-flex align-items-center">
+                        <span class="text-muted me-2">Kết quả tìm kiếm cho: <strong>"{{ search_query }}"</strong></span>
+                        <a href="{% url 'core:student_list' %}" class="btn btn-sm btn-outline-secondary">Xóa bộ lọc</a>
+                    </div>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
     <div class="card shadow border-primary">
         <div class="card-body p-0">
             <table class="table table-hover mb-0">
@@ -52,4 +82,33 @@
         </div>
     </div>
 </div>
-{% endblock %} 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const form = searchInput.closest('form');
+    
+    // Auto submit form when user stops typing (debounce)
+    let searchTimeout;
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() {
+            form.submit();
+        }, 500); // Wait 500ms after user stops typing
+    });
+    
+    // Submit on Enter
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            clearTimeout(searchTimeout);
+            form.submit();
+        }
+    });
+    
+    // Focus search input
+    searchInput.focus();
+});
+</script>
+{% endblock %}
