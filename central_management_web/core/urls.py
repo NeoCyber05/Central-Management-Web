@@ -16,13 +16,8 @@ urlpatterns = [
     path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
 
     # Statistics
-    path('statistics/', views.statistics, name='statistics'),
+    #path('statistics/', views.statistics, name='statistics'),
 
-    # User Management
-    path('users/', views.user_list, name='user_list'),
-    path('users/create/', views.user_create, name='user_create'),
-    path('users/<int:pk>/edit/', views.user_edit, name='user_edit'),
-    path('users/<int:pk>/delete/', views.user_delete, name='user_delete'),
 
     # Student Management
     path('students/', views.student_list, name='student_list'),

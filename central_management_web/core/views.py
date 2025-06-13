@@ -141,12 +141,6 @@ def admin_dashboard(request):
                   e.minitest3 IS NOT NULL OR e.minitest4 IS NOT NULL OR 
                   e.midterm IS NOT NULL OR e.final IS NOT NULL
             GROUP BY hv.student_id, hv.full_name
-            HAVING ROUND(AVG(
-                    (COALESCE(e.minitest1, 0) + COALESCE(e.minitest2, 0) + 
-                     COALESCE(e.minitest3, 0) + COALESCE(e.minitest4, 0)) / 4.0 * 0.4 + 
-                    COALESCE(e.midterm, 0) * 0.3 + 
-                    COALESCE(e.final, 0) * 0.3
-                ), 2) > 0
             ORDER BY avg_final_score DESC, total_classes DESC
             LIMIT 10;
         """)
@@ -202,35 +196,7 @@ def statistics(request):
     }
     return render(request, 'core/statistics.html', context)
 
-# User Management Views
-@login_required
-def user_list(request):
-    users = User.objects.all()
-    return render(request, 'core/user_list.html', {'users': users})
 
-@login_required
-def user_create(request):
-    if request.method == 'POST':
-        # Handle user creation
-        pass
-    return render(request, 'core/user_form.html')
-
-@login_required
-def user_edit(request, pk):
-    user = get_object_or_404(User, pk=pk)
-    if request.method == 'POST':
-        # Handle user update
-        pass
-    return render(request, 'core/user_form.html', {'user': user})
-
-@login_required
-def user_delete(request, pk):
-    user = get_object_or_404(User, pk=pk)
-    if request.method == 'POST':
-        user.delete()
-        messages.success(request, 'Người dùng đã được xóa thành công')
-        return redirect('core:user_list')
-    return render(request, 'core/user_confirm_delete.html', {'user': user})
 
 # Student Management Views
 @login_required
@@ -289,6 +255,7 @@ def student_delete(request, pk):
 #-------------------------------
 # Teacher Management Views
 #-------------------------------
+@login_required
 def teacher_list(request):
     search_query = request.GET.get('search', '')
     teachers = teacher.objects.all()
@@ -308,6 +275,7 @@ def teacher_list(request):
     }
     return render(request, 'teachers/teacher_list.html', context)
 
+@login_required
 def teacher_create(request):
     if request.method == 'POST':
         form = TeacherForm(request.POST)
@@ -317,7 +285,7 @@ def teacher_create(request):
     else:
         form = TeacherForm()
     return render(request, 'core/teacher_form.html', {'form': form, 'action': 'Thêm'})
-
+@login_required
 def teacher_edit(request, pk):
     gv = get_object_or_404(teacher, pk=pk)
     if request.method == 'POST':
@@ -328,7 +296,7 @@ def teacher_edit(request, pk):
     else:
         form = TeacherForm(instance=gv)
     return render(request, 'core/teacher_form.html', {'form': form, 'action': 'Sửa'})
-
+@login_required
 def teacher_delete(request, pk):
     gv = get_object_or_404(teacher, pk=pk)
     if request.method == 'POST':
@@ -413,7 +381,7 @@ def class_detail(request, pk):
             if student_id:
                 student = get_object_or_404(hoc_vien, pk=student_id)
                 # Kiểm tra sĩ số
-                if enrolls.count() < 30:  # Hoặc class_obj.si_so_toi_da nếu có
+                if enrolls.count() < 30:  
                     enrollments.objects.create(
                         student=student,
                         class_obj=class_obj,
@@ -823,6 +791,7 @@ def nhanvien_delete(request, pk):
         messages.success(request, 'Xóa nhân viên thành công!')
         return redirect('core:nhanvien_list')
     return render(request, 'nhanvien/nhanvien_confirm_delete.html', {'nhanvien': nv})
+
 
 #-------------------------------
 # Class Type Management Views

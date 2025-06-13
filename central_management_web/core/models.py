@@ -120,14 +120,15 @@ DAY_CHOICES = [
 
 class schedule(models.Model):
     id_schedule = models.AutoField(primary_key=True, verbose_name="Mã Lịch học")
-    class_obj = models.OneToOneField(clazz, on_delete=models.CASCADE, db_column='class_id', related_name='schedule', verbose_name="Lớp học")
+    class_obj = models.OneToOneField(clazz, on_delete=models.CASCADE, db_column='class_id', related_name='schedule', verbose_name="Lớp học", null=False)
     days = ArrayField(
         models.CharField(max_length=2, choices=DAY_CHOICES),
         size=3,  # Chỉ cho phép đúng 3 phần tử
-        verbose_name="Các ngày trong tuần"
+        verbose_name="Các ngày trong tuần",
+        null=False
     )
-    start_time = models.TimeField(verbose_name="Thời gian bắt đầu")
-    end_time = models.TimeField(verbose_name="Thời gian kết thúc")
+    start_time = models.TimeField(verbose_name="Thời gian bắt đầu", null=False)
+    end_time = models.TimeField(verbose_name="Thời gian kết thúc", null=False)
 
     def __str__(self):
         return f"Lịch học {self.id_schedule} cho lớp {self.class_obj.class_name}"
@@ -148,7 +149,7 @@ class enrollments(models.Model):
     minitest3 = models.DecimalField(null=True, blank=True, max_digits=4, decimal_places=2, verbose_name="Điểm minitest 3")
     minitest4 = models.DecimalField(null=True, blank=True, max_digits=4, decimal_places=2, verbose_name="Điểm minitest 4")
     midterm   = models.DecimalField(null=True, blank=True, max_digits=4, decimal_places=2, verbose_name="Điểm giữa kỳ")
-    final     = models.DecimalField(null=True, blank=True, max_digits=4, decimal_places=2, verbose_name="Điểm cuối kỳ")
+    final_test     = models.DecimalField(null=True, blank=True, max_digits=4, decimal_places=2, verbose_name="Điểm cuối kỳ")
 
     def __str__(self):
         return f"{self.student.full_name} đăng ký lớp {self.class_obj.class_name}"
@@ -164,15 +165,15 @@ class enrollments(models.Model):
             models.CheckConstraint(check=(models.Q(minitest3__gte=0, minitest3__lte=10) |models.Q(minitest3__isnull=True)),name='minitest3_in_range'),
             models.CheckConstraint(check=(models.Q(minitest4__gte=0, minitest4__lte=10) |models.Q(minitest4__isnull=True)),name='minitest4_in_range'),
             models.CheckConstraint(check=(models.Q(midterm__gte=0, midterm__lte=10) |models.Q(midterm__isnull=True)),name='midterm_in_range'),
-            models.CheckConstraint(check=(models.Q(final__gte=0, final__lte=10) |models.Q(final__isnull=True)),name='final_in_range'),
+            models.CheckConstraint(check=(models.Q(final_test__gte=0, final_test__lte=10) |models.Q(final_test__isnull=True)),name='final_in_range'),
         ]
  
 class attendance(models.Model):
     id_attend = models.AutoField(primary_key=True, verbose_name="Mã Điểm danh")
-    student = models.ForeignKey(hoc_vien, on_delete=models.CASCADE, db_column='student_id', verbose_name="Học viên")
-    class_obj = models.ForeignKey(clazz, on_delete=models.CASCADE, db_column='class_id', verbose_name="Lớp học")
-    attendance_date = models.DateField(verbose_name="Ngày điểm danh")
-    status = models.CharField(max_length=15, verbose_name="Trạng thái") 
+    student = models.ForeignKey(hoc_vien, on_delete=models.CASCADE, db_column='student_id', verbose_name="Học viên", null=False)
+    class_obj = models.ForeignKey(clazz, on_delete=models.CASCADE, db_column='class_id', verbose_name="Lớp học", null=False)
+    attendance_date = models.DateField(verbose_name="Ngày điểm danh", null=False)
+    status = models.CharField(max_length=1, verbose_name="Trạng thái", null=False) 
 
     def __str__(self):
         return f"Điểm danh {self.student.full_name} - Lớp {self.class_obj.class_name} - Ngày {self.attendance_date}"
@@ -183,18 +184,18 @@ class attendance(models.Model):
         db_table = 'attendance'
         constraints = [
             models.CheckConstraint(
-                check=models.Q(status__in=['Absent', 'Present']),
+                check=models.Q(status__in=['0', '1']),
                 name='status_valid'
             ),
         ]
 
 class feedback(models.Model):
     id_feedback = models.AutoField(primary_key=True, verbose_name="Mã Feedback")
-    student = models.ForeignKey(hoc_vien, on_delete=models.PROTECT, db_column='student_id', verbose_name="Học viên")
-    class_obj = models.ForeignKey(clazz, on_delete=models.PROTECT, db_column='class_id', verbose_name="Lớp học")
-    teacher = models.ForeignKey(teacher, on_delete=models.PROTECT, db_column='teacher_id', verbose_name="Giáo viên")
-    class_rate = models.DecimalField(null=True, blank=True, max_digits=4, decimal_places=2, verbose_name="Đánh giá lớp học") # Thang điểm 1-10
-    teacher_rate = models.DecimalField(null=True, blank=True, max_digits=4, decimal_places=2, verbose_name="Đánh giá giáo viên") # Thang điểm 1-10
+    student = models.ForeignKey(hoc_vien, on_delete=models.PROTECT, db_column='student_id', verbose_name="Học viên", null=False)
+    class_obj = models.ForeignKey(clazz, on_delete=models.PROTECT, db_column='class_id', verbose_name="Lớp học", null=False)
+    teacher = models.ForeignKey(teacher, on_delete=models.PROTECT, db_column='teacher_id', verbose_name="Giáo viên", null=False)
+    class_rate = models.DecimalField(max_digits=4, decimal_places=2, verbose_name="Đánh giá lớp học", null=False) # Thang điểm 1-10
+    teacher_rate = models.DecimalField(max_digits=4, decimal_places=2, verbose_name="Đánh giá giáo viên", null=False) # Thang điểm 1-10
  
     def __str__(self):
         return f"Feedback {self.id_feedback} từ {self.student.full_name} cho lớp {self.class_obj.class_name}"
