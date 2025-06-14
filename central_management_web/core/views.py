@@ -107,7 +107,7 @@ def admin_dashboard(request):
         """)
         class_type_ratings = cursor.fetchall()
         
-        # 7. Bảng xếp hạng điểm đánh giá giáo viên
+        # 7. Bảng xếp hạng top 10điểm đánh giá giáo viên
         cursor.execute("""
             SELECT 
                 t.full_name as teacher_name,
@@ -123,7 +123,7 @@ def admin_dashboard(request):
         """)
         teacher_rankings = cursor.fetchall()
         
-        # 8. Bảng xếp hạng điểm số tổng kết học viên
+        # 8. Bảng xếp hạng top 10 điểm số tổng kết học viên
         cursor.execute("""
             SELECT 
                 hv.full_name as student_name,
@@ -133,13 +133,13 @@ def admin_dashboard(request):
                     (COALESCE(e.minitest1, 0) + COALESCE(e.minitest2, 0) + 
                      COALESCE(e.minitest3, 0) + COALESCE(e.minitest4, 0)) / 4.0 * 0.4 + 
                     COALESCE(e.midterm, 0) * 0.3 + 
-                    COALESCE(e.final, 0) * 0.3
+                    COALESCE(e.final_test, 0) * 0.3
                 ), 2) as avg_final_score
             FROM hoc_vien hv
             LEFT JOIN enrollments e ON hv.student_id = e.student_id
             WHERE e.minitest1 IS NOT NULL OR e.minitest2 IS NOT NULL OR 
                   e.minitest3 IS NOT NULL OR e.minitest4 IS NOT NULL OR 
-                  e.midterm IS NOT NULL OR e.final IS NOT NULL
+                  e.midterm IS NOT NULL OR e.final_test IS NOT NULL
             GROUP BY hv.student_id, hv.full_name
             ORDER BY avg_final_score DESC, total_classes DESC
             LIMIT 10;
@@ -410,7 +410,7 @@ def class_detail(request, pk):
                 enrollment.minitest3 = request.POST.get('minitest3') or None
                 enrollment.minitest4 = request.POST.get('minitest4') or None
                 enrollment.midterm = request.POST.get('midterm') or None
-                enrollment.final = request.POST.get('final') or None
+                enrollment.final_test = request.POST.get('final_test') or None
                 enrollment.save()
                 messages.success(request, 'Cập nhật điểm số thành công!')
 
