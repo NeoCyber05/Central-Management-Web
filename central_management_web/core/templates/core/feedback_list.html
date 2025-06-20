@@ -98,6 +98,11 @@
             </div>
         </div>
     </div>
+    
+    <!-- Pagination -->
+    {% with page_obj=feedbacks %}
+        {% include 'core/pagination.html' %}
+    {% endwith %}
 </div>
 
 <!-- Modal Import Excel -->

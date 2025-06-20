@@ -63,5 +63,10 @@
             </table>
         </div>
     </div>
+    
+    <!-- Pagination -->
+    {% with page_obj=attendance_records %}
+        {% include 'core/pagination.html' %}
+    {% endwith %}
 </div>
 {% endblock %} 

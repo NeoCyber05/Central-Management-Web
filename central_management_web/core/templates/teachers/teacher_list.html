@@ -4,9 +4,14 @@
 
 {% block content %}
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Danh sách giáo viên</h2>
-        <a href="{% url 'core:teacher_create' %}" class="btn btn-primary">+ Thêm giáo viên</a>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary fw-bold">
+            <i class="fas fa-chalkboard-teacher me-2"></i>
+            Danh sách giáo viên
+        </h2>
+        <a href="{% url 'core:teacher_create' %}" class="btn btn-primary btn-lg shadow">
+            <i class="fas fa-plus me-2"></i>Thêm giáo viên
+        </a>
     </div>
     
     <!-- Search Form -->
@@ -38,7 +43,13 @@
             </form>
         </div>
     </div>
-    <div class="card shadow border-primary">
+    <div class="card shadow-lg border-primary rounded-4">
+        <div class="card-header bg-primary bg-gradient text-white">
+            <h5 class="mb-0">
+                <i class="fas fa-users me-2"></i>
+                Tổng số: {{ teachers.paginator.count }} giáo viên
+            </h5>
+        </div>
         <div class="card-body p-0">
             <table class="table table-hover mb-0">
                 <thead class="table-primary">
@@ -83,6 +94,11 @@
             </table>
         </div>
     </div>
+    
+    <!-- Pagination -->
+    {% with page_obj=teachers %}
+        {% include 'core/pagination.html' %}
+    {% endwith %}
 </div>
 {% endblock %}
 

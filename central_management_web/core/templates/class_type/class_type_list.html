@@ -35,5 +35,10 @@
             </table>
         </div>
     </div>
+    
+    <!-- Pagination -->
+    {% with page_obj=types %}
+        {% include 'core/pagination.html' %}
+    {% endwith %}
 </div>
 {% endblock %} 

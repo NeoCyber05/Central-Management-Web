@@ -55,5 +55,10 @@
             </table>
         </div>
     </div>
+    
+    <!-- Pagination -->
+    {% with page_obj=schedules %}
+        {% include 'core/pagination.html' %}
+    {% endwith %}
 </div>
 {% endblock %} 

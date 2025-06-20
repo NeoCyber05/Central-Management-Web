@@ -3,6 +3,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User, Group
 from django.db.models import Count, Sum, Avg, Q
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import nhan_vien, teacher, hoc_vien, clazz, schedule, enrollments, attendance, feedback, class_type
 from django.contrib import messages
 from django.utils import timezone
@@ -107,7 +108,7 @@ def admin_dashboard(request):
         """)
         class_type_ratings = cursor.fetchall()
         
-        # 7. Bảng xếp hạng top 10điểm đánh giá giáo viên
+        # 7. Bảng xếp hạng top 10 điểm đánh giá giáo viên
         cursor.execute("""
             SELECT 
                 t.full_name as teacher_name,
@@ -125,25 +126,8 @@ def admin_dashboard(request):
         
         # 8. Bảng xếp hạng top 10 điểm số tổng kết học viên
         cursor.execute("""
-            SELECT 
-                hv.full_name as student_name,
-                hv.student_id,
-                COUNT(e.id) as total_classes,
-                ROUND(AVG(
-                    (COALESCE(e.minitest1, 0) + COALESCE(e.minitest2, 0) + 
-                     COALESCE(e.minitest3, 0) + COALESCE(e.minitest4, 0)) / 4.0 * 0.4 + 
-                    COALESCE(e.midterm, 0) * 0.3 + 
-                    COALESCE(e.final_test, 0) * 0.3
-                ), 2) as avg_final_score
-            FROM hoc_vien hv
-            LEFT JOIN enrollments e ON hv.student_id = e.student_id
-            WHERE e.minitest1 IS NOT NULL OR e.minitest2 IS NOT NULL OR 
-                  e.minitest3 IS NOT NULL OR e.minitest4 IS NOT NULL OR 
-                  e.midterm IS NOT NULL OR e.final_test IS NOT NULL
-            GROUP BY hv.student_id, hv.full_name
-            ORDER BY avg_final_score DESC, total_classes DESC
-            LIMIT 10;
-        """)
+    SELECT * FROM top_10_student_final_scores
+    """)
         student_rankings = cursor.fetchall()
     
     # Chuẩn bị dữ liệu doanh thu theo tháng (12 tháng)
@@ -212,8 +196,19 @@ def student_list(request):
             Q(student_id__icontains=search_query)
         )
     
+    # Phân trang - 10 học viên mỗi trang
+    paginator = Paginator(students, 10)
+    page = request.GET.get('page')
+    
+    try:
+        students_page = paginator.page(page)
+    except PageNotAnInteger:
+        students_page = paginator.page(1)
+    except EmptyPage:
+        students_page = paginator.page(paginator.num_pages)
+    
     context = {
-        'students': students,
+        'students': students_page,
         'search_query': search_query,
     }
     return render(request, 'students/student_list.html', context)
@@ -269,8 +264,19 @@ def teacher_list(request):
             Q(trinh_do__icontains=search_query)
         )
     
+    # Phân trang - 10 giáo viên mỗi trang
+    paginator = Paginator(teachers, 10)
+    page = request.GET.get('page')
+    
+    try:
+        teachers_page = paginator.page(page)
+    except PageNotAnInteger:
+        teachers_page = paginator.page(1)
+    except EmptyPage:
+        teachers_page = paginator.page(paginator.num_pages)
+    
     context = {
-        'teachers': teachers,
+        'teachers': teachers_page,
         'search_query': search_query,
     }
     return render(request, 'teachers/teacher_list.html', context)
@@ -322,8 +328,19 @@ def class_list(request):
             Q(room__icontains=search_query)
         )
     
+    # Phân trang - 10 lớp học mỗi trang
+    paginator = Paginator(classes, 10)
+    page = request.GET.get('page')
+    
+    try:
+        classes_page = paginator.page(page)
+    except PageNotAnInteger:
+        classes_page = paginator.page(1)
+    except EmptyPage:
+        classes_page = paginator.page(paginator.num_pages)
+    
     context = {
-        'classes': classes,
+        'classes': classes_page,
         'search_query': search_query,
     }
     return render(request, 'classes/class_list.html', context)
@@ -349,10 +366,11 @@ def class_edit(request, pk):
         form = ClassForm(request.POST, instance=class_obj)
         if form.is_valid():
             form.save()
+            messages.success(request, 'Cập nhật lớp học thành công!')
             return redirect('core:class_list')
     else:
         form = ClassForm(instance=class_obj)
-    return render(request, 'classes/class_form.html', {'form': form, 'action': 'Sửa'})
+    return render(request, 'core/class_form.html', {'form': form, 'action': 'Sửa'})
 
 @login_required
 def class_delete(request, pk):
@@ -452,7 +470,19 @@ def class_detail(request, pk):
 @login_required
 def schedule_list(request):
     schedules = schedule.objects.all()
-    return render(request, 'core/schedule_list.html', {'schedules': schedules})
+    
+    # Phân trang - 10 lịch học mỗi trang
+    paginator = Paginator(schedules, 10)
+    page = request.GET.get('page')
+    
+    try:
+        schedules_page = paginator.page(page)
+    except PageNotAnInteger:
+        schedules_page = paginator.page(1)
+    except EmptyPage:
+        schedules_page = paginator.page(paginator.num_pages)
+    
+    return render(request, 'core/schedule_list.html', {'schedules': schedules_page})
 
 @login_required
 def schedule_create(request):
@@ -482,7 +512,19 @@ def schedule_delete(request, pk):
 @login_required
 def attendance_list(request):
     attendance_records = attendance.objects.all()
-    return render(request, 'core/attendance_list.html', {'attendance_records': attendance_records})
+    
+    # Phân trang - 15 bản ghi điểm danh mỗi trang
+    paginator = Paginator(attendance_records, 15)
+    page = request.GET.get('page')
+    
+    try:
+        attendance_page = paginator.page(page)
+    except PageNotAnInteger:
+        attendance_page = paginator.page(1)
+    except EmptyPage:
+        attendance_page = paginator.page(paginator.num_pages)
+    
+    return render(request, 'core/attendance_list.html', {'attendance_records': attendance_page})
 
 @login_required
 def attendance_create(request):
@@ -511,12 +553,24 @@ def attendance_delete(request, pk):
 # Feedback Management Views
 @login_required
 def feedback_list(request):
-    feedbacks = feedback.objects.all()
+    feedbacks = feedback.objects.all().order_by('-id_feedback')
     students = hoc_vien.objects.all()
     teachers = teacher.objects.all()
     classes = clazz.objects.all()
+    
+    # Phân trang - 15 đánh giá mỗi trang
+    paginator = Paginator(feedbacks, 15)
+    page = request.GET.get('page')
+    
+    try:
+        feedbacks_page = paginator.page(page)
+    except PageNotAnInteger:
+        feedbacks_page = paginator.page(1)
+    except EmptyPage:
+        feedbacks_page = paginator.page(paginator.num_pages)
+    
     return render(request, 'core/feedback_list.html', {
-        'feedbacks': feedbacks,
+        'feedbacks': feedbacks_page,
         'students': students,
         'teachers': teachers,
         'classes': classes,
@@ -752,8 +806,19 @@ def nhanvien_list(request):
             Q(nv_id__icontains=search_query)
         )
     
+    # Phân trang - 10 nhân viên mỗi trang
+    paginator = Paginator(nhanviens, 10)
+    page = request.GET.get('page')
+    
+    try:
+        nhanviens_page = paginator.page(page)
+    except PageNotAnInteger:
+        nhanviens_page = paginator.page(1)
+    except EmptyPage:
+        nhanviens_page = paginator.page(paginator.num_pages)
+    
     context = {
-        'nhanviens': nhanviens,
+        'nhanviens': nhanviens_page,
         'search_query': search_query,
     }
     return render(request, 'nhanvien/nhanvien_list.html', context)
@@ -799,7 +864,19 @@ def nhanvien_delete(request, pk):
 @login_required
 def class_type_list(request):
     types = class_type.objects.all()
-    return render(request, 'class_type/class_type_list.html', {'types': types})
+    
+    # Phân trang - 10 loại lớp mỗi trang
+    paginator = Paginator(types, 10)
+    page = request.GET.get('page')
+    
+    try:
+        types_page = paginator.page(page)
+    except PageNotAnInteger:
+        types_page = paginator.page(1)
+    except EmptyPage:
+        types_page = paginator.page(paginator.num_pages)
+    
+    return render(request, 'class_type/class_type_list.html', {'types': types_page})
 
 @login_required
 def class_type_create(request):
